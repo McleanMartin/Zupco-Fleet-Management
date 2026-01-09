@@ -1,0 +1,94 @@
+/* Cloudflare-Inspired Theme System */
+
+/* Light Theme (Default) */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f6f6;
+    --bg-tertiary: #e5e5e5;
+    --text-primary: #1a1a1a;
+    --text-secondary: #4a4a4a;
+    --text-tertiary: #6a6a6a;
+    --border-color: #e5e5e5;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3d3d3d;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --text-tertiary: #808080;
+    --border-color: #3d3d3d;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* Theme-aware utility classes */
+.theme-bg-primary {
+    background-color: var(--bg-primary) !important;
+}
+
+.theme-bg-secondary {
+    background-color: var(--bg-secondary) !important;
+}
+
+.theme-bg-tertiary {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.theme-text-primary {
+    color: var(--text-primary) !important;
+}
+
+.theme-text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.theme-text-tertiary {
+    color: var(--text-tertiary) !important;
+}
+
+.theme-border {
+    border-color: var(--border-color) !important;
+}
+
+.theme-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+.theme-card-hover {
+    transition: all 0.2s ease;
+}
+
+.theme-card-hover:hover {
+    border-color: #f97316;
+    box-shadow: 0 4px 6px var(--shadow);
+}
+
+/* Scrollbar theming */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #f97316;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ea580c;
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+

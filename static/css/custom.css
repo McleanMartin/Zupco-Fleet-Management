@@ -1,0 +1,94 @@
+/* Custom styles for ZUPCO Dashboard */
+
+/* Vehicle marker animation */
+.vehicle-marker {
+    transition: transform 0.2s ease;
+}
+
+.vehicle-marker:hover {
+    transform: scale(1.2);
+    z-index: 1000 !important;
+}
+
+/* Real-time indicator pulse */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Vehicle trail styles */
+.leaflet-interactive {
+    transition: stroke-opacity 0.3s ease;
+}
+
+/* Smooth scrollbar for vehicle list */
+#vehicles-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#vehicles-container::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 3px;
+}
+
+#vehicles-container::-webkit-scrollbar-thumb {
+    background: #f97316;
+    border-radius: 3px;
+}
+
+#vehicles-container::-webkit-scrollbar-thumb:hover {
+    background: #ea580c;
+}
+
+/* Loading animation */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+        to right,
+        #1e293b 0%,
+        #334155 50%,
+        #1e293b 100%
+    );
+    background-size: 1000px 100%;
+}
+
+/* Map popup styling */
+.leaflet-popup-content-wrapper {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-radius: 8px;
+}
+
+.leaflet-popup-tip {
+    background: #1e293b;
+}
+
+/* Status badge pulse */
+.status-pulse {
+    animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+

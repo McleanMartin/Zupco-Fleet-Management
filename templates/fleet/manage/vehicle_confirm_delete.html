@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Vehicle - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold theme-text-primary">Delete Vehicle</h1>
+    </div>
+
+    <div class="theme-card p-6">
+        <p class="theme-text-secondary mb-4">Are you sure you want to delete vehicle <strong class="theme-text-primary">{{ vehicle.registration }}</strong>?</p>
+        <p class="theme-text-tertiary text-sm mb-6">This action cannot be undone.</p>
+
+        <form method="post" class="flex items-center space-x-4">
+            {% csrf_token %}
+            <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                Delete
+            </button>
+            <a href="{% url 'vehicle_list' %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

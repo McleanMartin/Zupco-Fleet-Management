@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold theme-text-primary">{{ title }}</h1>
+    </div>
+
+    <div class="theme-card p-6">
+        {% if form.errors %}
+        <div class="mb-4 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg">
+            <p class="font-semibold mb-2">Please correct the errors below:</p>
+            <ul class="list-disc list-inside text-sm">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium theme-text-primary mb-2">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="mt-1 text-xs theme-text-tertiary">{{ field.help_text }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="flex items-center space-x-4 pt-4">
+                <button type="submit" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
+                    Save
+                </button>
+                <a href="{% url 'route_list' %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #f97316;
+        ring: 2px;
+        ring-color: #f97316;
+    }
+    .form-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: #f97316;
+    }
+</style>
+{% endblock %}

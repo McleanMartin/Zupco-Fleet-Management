@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">Dashboard</h1>
+            <p class="theme-text-secondary">Welcome back, {{ user.username }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'logout' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="stats-container"
+         hx-get="{% url 'stats' %}" 
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML">
+        <!-- Stats will be loaded here -->
+        <div class="animate-pulse">
+            <div class="theme-bg-secondary rounded-lg p-6 border theme-border h-24"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="mb-6">
+    <div class="border-b theme-border">
+        <nav class="flex space-x-8" aria-label="Tabs">
+            <button onclick="switchTab('fleet')" id="tab-fleet" class="tab-button active py-4 px-1 border-b-2 border-orange-500 font-medium text-sm text-orange-500">
+                Fleet Management
+            </button>
+            <button onclick="switchTab('fuel')" id="tab-fuel" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm theme-text-secondary hover:text-orange-400 hover:border-orange-400 transition">
+                Fuel
+            </button>
+            <button onclick="switchTab('routes')" id="tab-routes" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm theme-text-secondary hover:text-orange-400 hover:border-orange-400 transition">
+                Routes
+            </button>
+        </nav>
+    </div>
+</div>
+
+<!-- Tab Content -->
+<div id="tab-content">
+    <!-- Fleet Management Tab -->
+    <div id="content-fleet" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Map and Vehicles -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Map -->
+                <div class="theme-card theme-card-hover p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <h3 class="text-xl font-semibold theme-text-primary">Live Vehicle Tracking</h3>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" id="realtime-indicator"></div>
+                                <span class="text-xs theme-text-secondary" id="realtime-status">Real-time</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="toggleTrails()" id="trails-btn" class="px-3 py-1.5 text-xs theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md transition">
+                                Trails: Off
+                            </button>
+                            <button onclick="refreshMap()" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="map" class="h-96 rounded-lg border theme-border"></div>
+                    <div class="mt-2 flex items-center justify-between text-xs theme-text-secondary">
+                        <span id="map-vehicle-count">0 vehicles on map</span>
+                        <span id="last-update">Updating...</span>
+                    </div>
+                </div>
+
+                <!-- Active Vehicles -->
+                <div class="theme-card theme-card-hover p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold theme-text-primary">Active Vehicles</h3>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="toggleVehicleFilter()" id="filter-btn" class="px-3 py-1 text-xs theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md transition">
+                                All
+                            </button>
+                            <span class="text-sm theme-text-secondary" id="vehicle-count">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="vehicles-list" 
+                         hx-get="{% url 'vehicles' %}" 
+                         hx-trigger="load, every 15s"
+                         hx-swap="innerHTML">
+                        <div class="space-y-3">
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-16"></div>
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-16"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Recent Activity and Status -->
+            <div class="space-y-6">
+                <!-- Recent Activity -->
+                <div class="theme-card theme-card-hover p-6">
+                    <h3 class="text-xl font-semibold theme-text-primary mb-4">Recent Activity</h3>
+                    <div id="recent-activity"
+                         hx-get="{% url 'activity' %}" 
+                         hx-trigger="load, every 10s"
+                         hx-swap="innerHTML">
+                        <div class="space-y-2">
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-10"></div>
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-10"></div>
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-10"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="theme-card theme-card-hover p-6">
+                    <h3 class="text-xl font-semibold theme-text-primary mb-4">System Status</h3>
+                    <div id="system-status"
+                         hx-get="{% url 'status' %}" 
+                         hx-trigger="load, every 20s"
+                         hx-swap="innerHTML">
+                        <div class="space-y-3">
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-8"></div>
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-8"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fuel Tab -->
+    <div id="content-fuel" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Fuel Stats -->
+            <div class="lg:col-span-3">
+                <div id="fuel-stats-container"
+                     hx-get="{% url 'fuel_stats' %}" 
+                     hx-trigger="load, every 60s"
+                     hx-swap="innerHTML">
+                    <div class="animate-pulse theme-bg-secondary rounded-lg p-6 border theme-border h-32"></div>
+                </div>
+            </div>
+
+            <!-- Fuel Records -->
+            <div class="lg:col-span-3">
+                <div class="theme-card theme-card-hover p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold theme-text-primary">Fuel Records</h3>
+                        <a href="{% url 'fuel_record_create' %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition">
+                            Add Record
+                        </a>
+                    </div>
+                    <div id="fuel-records"
+                         hx-get="{% url 'fuel' %}" 
+                         hx-trigger="load, every 30s"
+                         hx-swap="innerHTML">
+                        <div class="space-y-2">
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-12"></div>
+                            <div class="animate-pulse theme-bg-tertiary rounded-lg h-12"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Routes Tab -->
+    <div id="content-routes" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Active Routes -->
+            <div class="theme-card theme-card-hover p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold theme-text-primary">Active Routes</h3>
+                    <a href="{% url 'route_create' %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition">
+                        Add Route
+                    </a>
+                </div>
+                <div id="routes-list"
+                     hx-get="{% url 'routes' %}" 
+                     hx-trigger="load, every 30s"
+                     hx-swap="innerHTML">
+                    <div class="space-y-2">
+                        <div class="animate-pulse theme-bg-tertiary rounded-lg h-12"></div>
+                        <div class="animate-pulse theme-bg-tertiary rounded-lg h-12"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Details -->
+            <div class="theme-card theme-card-hover p-6">
+                <h3 class="text-xl font-semibold theme-text-primary mb-4">Route Management</h3>
+                <p class="theme-text-secondary mb-4">Manage routes, stops, and schedules.</p>
+                <div class="space-y-3">
+                    <a href="{% url 'route_list' %}" class="block px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md text-sm font-medium transition text-center">
+                        View All Routes
+                    </a>
+                    <a href="{% url 'vehicle_list' %}" class="block px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md text-sm font-medium transition text-center">
+                        Manage Vehicles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab switching
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active', 'border-orange-500', 'text-orange-500');
+            btn.classList.add('border-transparent', 'theme-text-secondary');
+        });
+        
+        // Show selected tab content
+        document.getElementById(`content-${tabName}`).classList.remove('hidden');
+        
+        // Add active class to selected tab
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        activeTab.classList.add('active', 'border-orange-500', 'text-orange-500');
+        activeTab.classList.remove('border-transparent', 'theme-text-secondary');
+        
+        // Start/stop real-time tracking based on tab
+        if (tabName === 'fleet' && map) {
+            // Ensure map is properly sized when tab becomes visible
+            setTimeout(() => {
+                map.invalidateSize();
+                startRealTimeTracking();
+            }, 100);
+        } else if (tabName !== 'fleet') {
+            stopRealTimeTracking();
+        }
+    }
+
+    // Initialize Map
+    let map;
+    let vehicleMarkers = {};
+    let vehiclePaths = {}; // Store paths for trails
+    let showTrails = false;
+    let realTimeInterval = null;
+
+    function initMap() {
+        // Center on Harare, Zimbabwe
+        map = L.map('map').setView([-17.8292, 31.0522], 12);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+    }
+
+    function refreshMap() {
+        // Trigger immediate update
+        updateMapWithVehicles();
+    }
+
+    function toggleTrails() {
+        showTrails = !showTrails;
+        const btn = document.getElementById('trails-btn');
+        btn.textContent = `Trails: ${showTrails ? 'On' : 'Off'}`;
+        btn.className = showTrails
+            ? 'px-3 py-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-md transition'
+            : 'px-3 py-1.5 text-xs theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md transition';
+        
+        // Show/hide all trails
+        Object.values(vehiclePaths).forEach(path => {
+            if (showTrails) {
+                path.addTo(map);
+            } else {
+                map.removeLayer(path);
+            }
+        });
+    }
+
+    function createVehicleIcon(vehicle) {
+        const isOnline = vehicle.is_online;
+        const speed = vehicle.last_location?.speed || 0;
+        const heading = vehicle.last_location?.heading;
+        
+        // Create direction arrow if heading available
+        let arrowHtml = '';
+        if (heading !== null && heading !== undefined) {
+            arrowHtml = `<div style="transform: rotate(${heading}deg); transform-origin: center; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 8px solid ${isOnline ? '#f97316' : '#6b7280'}; position: absolute; top: -2px; left: 50%; margin-left: -4px;"></div>`;
+        }
+        
+        return L.divIcon({
+            className: 'vehicle-marker',
+            html: `
+                <div class="relative">
+                    <div class="w-5 h-5 ${isOnline ? 'bg-orange-500' : 'bg-gray-500'} rounded-full border-2 border-white shadow-lg ${isOnline ? 'animate-pulse' : ''}"></div>
+                    ${arrowHtml}
+                    ${speed > 0 ? `<div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs font-bold ${isOnline ? 'text-orange-500' : 'text-gray-500'} whitespace-nowrap">${Math.round(speed)}</div>` : ''}
+                </div>
+            `,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+    }
+
+    function updateVehicleOnMap(vehicle) {
+        if (!vehicle.last_location) return;
+        
+        const lat = parseFloat(vehicle.last_location.latitude);
+        const lon = parseFloat(vehicle.last_location.longitude);
+        const speed = vehicle.last_location.speed || 0;
+        const heading = vehicle.last_location.heading;
+        const timestamp = vehicle.last_location.timestamp;
+        
+        if (vehicleMarkers[vehicle.id]) {
+            // Get old position for smooth animation
+            const oldPos = vehicleMarkers[vehicle.id].getLatLng();
+            const newPos = [lat, lon];
+            
+            // Smooth animation
+            vehicleMarkers[vehicle.id].setLatLng(newPos, {
+                animate: true,
+                duration: 2.0
+            });
+            
+            // Update icon if heading changed
+            if (heading !== null && heading !== undefined) {
+                vehicleMarkers[vehicle.id].setIcon(createVehicleIcon(vehicle));
+            }
+            
+            // Update popup with latest info
+            vehicleMarkers[vehicle.id].setPopupContent(`
+                <div class="min-w-[200px]">
+                    <div class="font-bold text-lg mb-2">${vehicle.registration}</div>
+                    <div class="text-sm mb-1">${vehicle.make} ${vehicle.model}</div>
+                    <div class="text-xs space-y-1">
+                        <div><strong>Speed:</strong> ${speed.toFixed(1)} km/h</div>
+                        ${heading !== null && heading !== undefined ? `<div><strong>Heading:</strong> ${heading.toFixed(0)}°</div>` : ''}
+                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">● Online</span>' : '<span class="text-red-600">○ Offline</span>'}</div>
+                        <div class="text-gray-500 mt-2">Updated: ${new Date(timestamp).toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `);
+            
+            // Add to path for trail
+            if (showTrails) {
+                if (!vehiclePaths[vehicle.id]) {
+                    vehiclePaths[vehicle.id] = L.polyline([], {
+                        color: vehicle.is_online ? '#f97316' : '#6b7280',
+                        weight: 2,
+                        opacity: 0.6
+                    }).addTo(map);
+                }
+                vehiclePaths[vehicle.id].addLatLng(newPos);
+                
+                // Limit trail to last 50 points
+                const latlngs = vehiclePaths[vehicle.id].getLatLngs();
+                if (latlngs.length > 50) {
+                    vehiclePaths[vehicle.id].setLatLngs(latlngs.slice(-50));
+                }
+            }
+        } else {
+            // Create new marker
+            const icon = createVehicleIcon(vehicle);
+            const marker = L.marker([lat, lon], { 
+                icon: icon,
+                title: vehicle.registration
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <div class="min-w-[200px]">
+                    <div class="font-bold text-lg mb-2">${vehicle.registration}</div>
+                    <div class="text-sm mb-1">${vehicle.make} ${vehicle.model}</div>
+                    <div class="text-xs space-y-1">
+                        <div><strong>Speed:</strong> ${speed.toFixed(1)} km/h</div>
+                        ${heading !== null && heading !== undefined ? `<div><strong>Heading:</strong> ${heading.toFixed(0)}°</div>` : ''}
+                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">● Online</span>' : '<span class="text-red-600">○ Offline</span>'}</div>
+                        <div class="text-gray-500 mt-2">Updated: ${new Date(timestamp).toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `);
+            
+            // Make marker clickable to center map
+            marker.on('click', function() {
+                map.setView([lat, lon], Math.max(map.getZoom(), 15));
+            });
+            
+            vehicleMarkers[vehicle.id] = marker;
+            
+            // Initialize path for trail
+            if (showTrails) {
+                vehiclePaths[vehicle.id] = L.polyline([[lat, lon]], {
+                    color: vehicle.is_online ? '#f97316' : '#6b7280',
+                    weight: 2,
+                    opacity: 0.6
+                }).addTo(map);
+            }
+        }
+    }
+
+    // Vehicle filter state
+    let showOnlyOnline = false;
+
+    function toggleVehicleFilter() {
+        showOnlyOnline = !showOnlyOnline;
+        const btn = document.getElementById('filter-btn');
+        btn.textContent = showOnlyOnline ? 'Online Only' : 'All';
+        btn.className = showOnlyOnline 
+            ? 'px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-md transition'
+            : 'px-3 py-1 text-xs theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-md transition';
+        
+        // Refresh vehicles list
+        htmx.trigger('#vehicles-list', 'refresh');
+    }
+
+    // Function to fetch and update vehicles on map
+    function updateMapWithVehicles() {
+        fetch('{% url "vehicles_json" %}')
+            .then(response => response.json())
+            .then(vehicles => {
+                const vehiclesWithLocation = vehicles.filter(v => v.last_location);
+                
+                // Update vehicle count
+                document.getElementById('map-vehicle-count').textContent = 
+                    `${vehiclesWithLocation.length} vehicle${vehiclesWithLocation.length !== 1 ? 's' : ''} on map`;
+                
+                // Update last update time
+                document.getElementById('last-update').textContent = 
+                    `Last update: ${new Date().toLocaleTimeString()}`;
+                
+                // Remove markers for vehicles that no longer have locations or are inactive
+                Object.keys(vehicleMarkers).forEach(id => {
+                    const vehicle = vehicles.find(v => v.id == id);
+                    if (!vehicle || !vehicle.last_location) {
+                        map.removeLayer(vehicleMarkers[id]);
+                        delete vehicleMarkers[id];
+                        if (vehiclePaths[id]) {
+                            map.removeLayer(vehiclePaths[id]);
+                            delete vehiclePaths[id];
+                        }
+                    }
+                });
+
+                // Update or create markers for all vehicles with locations
+                vehiclesWithLocation.forEach(vehicle => {
+                    updateVehicleOnMap(vehicle);
+                });
+                
+                // Update real-time indicator
+                const indicator = document.getElementById('realtime-indicator');
+                indicator.classList.remove('bg-red-500', 'bg-green-500');
+                indicator.classList.add(vehiclesWithLocation.length > 0 ? 'bg-green-500' : 'bg-gray-500');
+            })
+            .catch(error => {
+                console.error('Error updating map:', error);
+                document.getElementById('realtime-status').textContent = 'Connection Error';
+                document.getElementById('realtime-indicator').classList.remove('bg-green-500');
+                document.getElementById('realtime-indicator').classList.add('bg-red-500');
+            });
+    }
+
+    // Start real-time tracking
+    function startRealTimeTracking() {
+        // Clear any existing interval
+        if (realTimeInterval) {
+            clearInterval(realTimeInterval);
+        }
+        
+        // Update immediately
+        updateMapWithVehicles();
+        
+        // Update every 5 seconds for real-time feel
+        realTimeInterval = setInterval(updateMapWithVehicles, 5000);
+        
+        document.getElementById('realtime-status').textContent = 'Real-time';
+    }
+
+    // Stop real-time tracking
+    function stopRealTimeTracking() {
+        if (realTimeInterval) {
+            clearInterval(realTimeInterval);
+            realTimeInterval = null;
+        }
+        document.getElementById('realtime-status').textContent = 'Paused';
+        document.getElementById('realtime-indicator').classList.remove('bg-green-500');
+        document.getElementById('realtime-indicator').classList.add('bg-gray-500');
+    }
+
+    // Update map when vehicles list is updated
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.detail.target.id === 'vehicles-list') {
+            // Update map after a short delay to ensure DOM is ready
+            setTimeout(updateMapWithVehicles, 100);
+        }
+    });
+
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        setTimeout(() => {
+            updateMapWithVehicles();
+            startRealTimeTracking();
+        }, 1000);
+    });
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        stopRealTimeTracking();
+    });
+</script>
+{% endblock %}

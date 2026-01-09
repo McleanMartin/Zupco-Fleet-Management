@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZUPCO Fleet Management{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Leaflet.js for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        },
+                        // Cloudflare-inspired colors
+                        cf: {
+                            dark: '#1a1a1a',
+                            'dark-2': '#2d2d2d',
+                            'dark-3': '#3d3d3d',
+                            light: '#ffffff',
+                            'light-2': '#f6f6f6',
+                            'light-3': '#e5e5e5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Theme Variables */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f6f6;
+            --bg-tertiary: #e5e5e5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-tertiary: #6a6a6a;
+            --border-color: #e5e5e5;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-tertiary: #808080;
+            --border-color: #3d3d3d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ea580c;
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+        
+        /* Map container */
+        #map {
+            z-index: 1;
+        }
+        
+        /* Theme-aware classes */
+        .theme-bg-primary {
+            background-color: var(--bg-primary);
+        }
+        
+        .theme-bg-secondary {
+            background-color: var(--bg-secondary);
+        }
+        
+        .theme-text-primary {
+            color: var(--text-primary);
+        }
+        
+        .theme-text-secondary {
+            color: var(--text-secondary);
+        }
+        
+        .theme-border {
+            border-color: var(--border-color);
+        }
+    </style>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body class="theme-bg-primary theme-text-primary min-h-screen">
+    <!-- Navigation -->
+    <nav class="theme-bg-secondary border-b theme-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-orange-500">ZUPCO</h1>
+                    </div>
+                    <div class="hidden md:block ml-10">
+                        <div class="flex items-baseline space-x-4">
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard' %}" class="text-orange-500 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition">
+                                Dashboard
+                            </a>
+                            <a href="/admin/" class="theme-text-secondary hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition">
+                                Admin
+                            </a>
+                            <a href="/api/" class="theme-text-secondary hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition">
+                                API
+                            </a>
+                            {% else %}
+                            <a href="{% url 'landing' %}" class="text-orange-500 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition">
+                                Home
+                            </a>
+                            <a href="{% url 'login' %}" class="theme-text-secondary hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition">
+                                Login
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" id="theme-toggle" class="p-2 rounded-lg theme-bg-tertiary hover:bg-opacity-80 transition" aria-label="Toggle theme">
+                        <svg id="theme-icon-dark" class="w-5 h-5 theme-text-primary hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                        <svg id="theme-icon-light" class="w-5 h-5 theme-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button>
+                    {% if user.is_authenticated %}
+                    <span class="text-sm theme-text-secondary">{{ user.username }}</span>
+                    {% endif %}
+                    <div class="text-sm theme-text-secondary">
+                        <span id="current-time"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg border {% if message.tags == 'error' %}bg-red-500/10 border-red-500/50 text-red-400{% elif message.tags == 'success' %}bg-green-500/10 border-green-500/50 text-green-400{% else %}theme-bg-secondary theme-border{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="theme-bg-secondary border-t theme-border mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center theme-text-secondary text-sm">
+                ZUPCO IoT Fleet Management System &copy; 2024
+            </p>
+        </div>
+    </footer>
+
+    <!-- Theme Management -->
+    <script>
+        // Theme management
+        function getTheme() {
+            return localStorage.getItem('theme') || 'light';
+        }
+        
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            const root = document.getElementById('html-root');
+            if (theme === 'dark') {
+                root.setAttribute('data-theme', 'dark');
+                root.classList.add('dark');
+                document.getElementById('theme-icon-dark').classList.remove('hidden');
+                document.getElementById('theme-icon-light').classList.add('hidden');
+            } else {
+                root.setAttribute('data-theme', 'light');
+                root.classList.remove('dark');
+                document.getElementById('theme-icon-dark').classList.add('hidden');
+                document.getElementById('theme-icon-light').classList.remove('hidden');
+            }
+        }
+        
+        function toggleTheme() {
+            const currentTheme = getTheme();
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+        
+        // Initialize theme on load
+        setTheme(getTheme());
+        
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
