@@ -1,0 +1,40 @@
+{% if recent_locations %}
+<div class="space-y-2 max-h-64 overflow-y-auto">
+    {% for location in recent_locations %}
+    <div class="theme-bg-tertiary hover:opacity-80 rounded-lg p-3 border theme-border transition">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <div class="flex items-center space-x-2 mb-1">
+                    <span class="font-medium theme-text-primary text-sm">{{ location.vehicle.registration }}</span>
+                    <span class="text-xs theme-text-tertiary">•</span>
+                    <span class="text-xs theme-text-secondary">{{ location.timestamp|timesince }} ago</span>
+                </div>
+                <div class="flex items-center space-x-4 text-xs theme-text-secondary">
+                    <span>📍 {{ location.latitude|floatformat:4 }}, {{ location.longitude|floatformat:4 }}</span>
+                    <span class="text-orange-500">{{ location.speed|floatformat:0 }} km/h</span>
+                </div>
+            </div>
+            <div class="ml-2">
+                {% if location.ignition %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
+                    ON
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium theme-bg-tertiary theme-text-tertiary">
+                    OFF
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-6">
+    <svg class="w-10 h-10 theme-text-tertiary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <p class="theme-text-secondary text-sm">No recent activity</p>
+</div>
+{% endif %}
+

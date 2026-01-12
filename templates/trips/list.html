@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Trips - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">Trips</h1>
+            <p class="theme-text-secondary">Schedule and manage vehicle trips</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'trips:create' %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Schedule Trip
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="mb-6 theme-card p-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+            <label for="status" class="block text-sm font-medium theme-text-primary mb-2">Status</label>
+            <select name="status" id="status" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="">All Statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="vehicle" class="block text-sm font-medium theme-text-primary mb-2">Vehicle</label>
+            <select name="vehicle" id="vehicle" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="">All Vehicles</option>
+                {% for v in vehicles %}
+                <option value="{{ v.pk }}" {% if vehicle_filter == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.registration }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="route" class="block text-sm font-medium theme-text-primary mb-2">Route</label>
+            <select name="route" id="route" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="">All Routes</option>
+                {% for r in routes %}
+                <option value="{{ r.pk }}" {% if route_filter == r.pk|stringformat:"s" %}selected{% endif %}>{{ r.code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="date_from" class="block text-sm font-medium theme-text-primary mb-2">From Date</label>
+            <input type="date" name="date_from" id="date_from" value="{{ date_from }}" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+        </div>
+        <div class="flex items-end space-x-4">
+            <div>
+                <label for="date_to" class="block text-sm font-medium theme-text-primary mb-2">To Date</label>
+                <input type="date" name="date_to" id="date_to" value="{{ date_to }}" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
+            <button type="submit" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Filter
+            </button>
+            {% if status_filter or vehicle_filter or route_filter or date_from or date_to %}
+            <a href="{% url 'trips:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Trips List -->
+{% if trips %}
+<div class="theme-card p-6">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b theme-border">
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Scheduled Start</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Vehicle</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Route</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Status</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Duration</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in trips %}
+                <tr class="border-b theme-border hover:theme-bg-tertiary transition">
+                    <td class="py-3 px-4 theme-text-primary text-sm">{{ trip.scheduled_start|date:"Y-m-d H:i" }}</td>
+                    <td class="py-3 px-4">
+                        <a href="{% url 'vehicles:detail' trip.vehicle.pk %}" class="text-orange-500 hover:text-orange-400 font-medium">
+                            {{ trip.vehicle.registration }}
+                        </a>
+                    </td>
+                    <td class="py-3 px-4 theme-text-secondary">
+                        {% if trip.route %}
+                        <a href="{% url 'routes:detail' trip.route.pk %}" class="text-orange-500 hover:text-orange-400">
+                            {{ trip.route.code }}
+                        </a>
+                        {% else %}
+                        <span class="theme-text-tertiary">No Route</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if trip.status == 'completed' %}bg-green-500/20 text-green-400
+                            {% elif trip.status == 'in_progress' %}bg-blue-500/20 text-blue-400
+                            {% elif trip.status == 'cancelled' %}bg-red-500/20 text-red-400
+                            {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {{ trip.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 theme-text-secondary text-sm">
+                        {% if trip.duration_minutes %}
+                            {{ trip.duration_minutes|floatformat:0 }} min
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <a href="{% url 'trips:detail' trip.pk %}" class="text-orange-500 hover:text-orange-400 mr-3 text-sm">View</a>
+                        <a href="{% url 'trips:edit' trip.pk %}" class="text-orange-500 hover:text-orange-400 mr-3 text-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-12 theme-card">
+    <svg class="w-16 h-16 theme-text-tertiary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+    </svg>
+    <p class="text-lg theme-text-secondary mb-2">No trips found</p>
+    <p class="text-sm theme-text-tertiary mb-4">Get started by scheduling your first trip</p>
+    <a href="{% url 'trips:create' %}" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
+        Schedule Trip
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+

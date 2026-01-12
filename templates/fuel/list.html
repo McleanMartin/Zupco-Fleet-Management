@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Fuel Records - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">Fuel Records</h1>
+            <p class="theme-text-secondary">Track fuel consumption and refueling</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'fuel:stats' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                View Statistics
+            </a>
+            <a href="{% url 'fuel:create' %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Add Record
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="mb-6 theme-card p-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label for="vehicle" class="block text-sm font-medium theme-text-primary mb-2">Vehicle</label>
+            <select name="vehicle" id="vehicle" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="">All Vehicles</option>
+                {% for v in vehicles %}
+                <option value="{{ v.pk }}" {% if vehicle_filter == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.registration }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="type" class="block text-sm font-medium theme-text-primary mb-2">Type</label>
+            <select name="type" id="type" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="">All Types</option>
+                <option value="refuel" {% if transaction_type_filter == 'refuel' %}selected{% endif %}>Refuel</option>
+                <option value="consumption" {% if transaction_type_filter == 'consumption' %}selected{% endif %}>Consumption</option>
+            </select>
+        </div>
+        <div>
+            <label for="date_from" class="block text-sm font-medium theme-text-primary mb-2">From Date</label>
+            <input type="date" name="date_from" id="date_from" value="{{ date_from }}" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+        </div>
+        <div>
+            <label for="date_to" class="block text-sm font-medium theme-text-primary mb-2">To Date</label>
+            <input type="date" name="date_to" id="date_to" value="{{ date_to }}" class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500">
+        </div>
+        <div class="md:col-span-4 flex items-end space-x-4">
+            <button type="submit" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Filter
+            </button>
+            {% if vehicle_filter or transaction_type_filter or date_from or date_to %}
+            <a href="{% url 'fuel:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Fuel Records -->
+{% if fuel_records %}
+<div class="theme-card p-6">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b theme-border">
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Date</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Vehicle</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold">Type</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold">Quantity</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold">Cost</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold">Cost/L</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in fuel_records %}
+                <tr class="border-b theme-border hover:theme-bg-tertiary transition">
+                    <td class="py-3 px-4 theme-text-secondary text-sm">{{ record.date|date:"Y-m-d H:i" }}</td>
+                    <td class="py-3 px-4">
+                        <a href="{% url 'vehicles:detail' record.vehicle.pk %}" class="text-orange-500 hover:text-orange-400 font-medium">
+                            {{ record.vehicle.registration }}
+                        </a>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if record.transaction_type == 'refuel' %}bg-green-500/20 text-green-400
+                            {% else %}bg-blue-500/20 text-blue-400{% endif %}">
+                            {{ record.get_transaction_type_display }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-right theme-text-primary font-medium">{{ record.quantity|floatformat:2 }}L</td>
+                    <td class="py-3 px-4 text-right theme-text-primary">${{ record.cost|floatformat:2 }}</td>
+                    <td class="py-3 px-4 text-right theme-text-secondary text-sm">${{ record.cost_per_liter|floatformat:2 }}</td>
+                    <td class="py-3 px-4 text-right">
+                        <a href="{% url 'fuel:detail' record.pk %}" class="text-orange-500 hover:text-orange-400 mr-3 text-sm">View</a>
+                        <a href="{% url 'fuel:edit' record.pk %}" class="text-orange-500 hover:text-orange-400 mr-3 text-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-12 theme-card">
+    <svg class="w-16 h-16 theme-text-tertiary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+    </svg>
+    <p class="text-lg theme-text-secondary mb-2">No fuel records found</p>
+    <p class="text-sm theme-text-tertiary mb-4">Get started by adding your first fuel record</p>
+    <a href="{% url 'fuel:create' %}" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
+        Add Fuel Record
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+

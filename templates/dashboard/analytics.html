@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div>
+        <h1 class="text-3xl font-bold theme-text-primary mb-2">Analytics & Reports</h1>
+        <p class="theme-text-secondary">Comprehensive fleet analytics and insights</p>
+    </div>
+</div>
+
+<!-- Vehicle Statistics -->
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold theme-text-primary mb-4">Vehicle Statistics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Total Vehicles</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ vehicle_stats.total|default:0 }}</p>
+                </div>
+                <div class="bg-orange-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Active</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ vehicle_stats.active|default:0 }}</p>
+                </div>
+                <div class="bg-green-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Maintenance</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ vehicle_stats.maintenance|default:0 }}</p>
+                </div>
+                <div class="bg-yellow-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Inactive</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ vehicle_stats.inactive|default:0 }}</p>
+                </div>
+                <div class="bg-gray-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trip Statistics -->
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold theme-text-primary mb-4">Trip Statistics (Last 30 Days)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Total Trips</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ trip_stats.total|default:0 }}</p>
+                </div>
+                <div class="bg-blue-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Completed</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ trip_stats.completed|default:0 }}</p>
+                </div>
+                <div class="bg-green-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">In Progress</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ trip_stats.in_progress|default:0 }}</p>
+                </div>
+                <div class="bg-purple-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Cancelled</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ trip_stats.cancelled|default:0 }}</p>
+                </div>
+                <div class="bg-red-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fuel Statistics -->
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold theme-text-primary mb-4">Fuel Statistics (Last 30 Days)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Total Fuel</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ fuel_stats.total_fuel|default:0|floatformat:0 }}L</p>
+                </div>
+                <div class="bg-orange-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Total Cost</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">${{ fuel_stats.total_cost|default:0|floatformat:2 }}</p>
+                </div>
+                <div class="bg-green-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Avg Cost/Liter</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">${{ fuel_stats.avg_cost|default:0|floatformat:2 }}</p>
+                </div>
+                <div class="bg-blue-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Route Statistics -->
+<div class="mb-8">
+    <h2 class="text-2xl font-semibold theme-text-primary mb-4">Route Statistics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Total Routes</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ route_stats.total|default:0 }}</p>
+                </div>
+                <div class="bg-indigo-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-card theme-card-hover p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="theme-text-secondary text-sm font-medium">Active Routes</p>
+                    <p class="text-3xl font-bold theme-text-primary mt-2">{{ route_stats.active|default:0 }}</p>
+                </div>
+                <div class="bg-green-500/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <a href="{% url 'vehicles:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
+        <div class="text-4xl mb-3">🚗</div>
+        <h3 class="font-semibold theme-text-primary mb-2">Vehicles</h3>
+        <p class="text-sm theme-text-secondary">Manage fleet</p>
+    </a>
+    <a href="{% url 'fuel:stats' %}" class="theme-card theme-card-hover p-6 text-center transition">
+        <div class="text-4xl mb-3">⛽</div>
+        <h3 class="font-semibold theme-text-primary mb-2">Fuel Reports</h3>
+        <p class="text-sm theme-text-secondary">View fuel analytics</p>
+    </a>
+    <a href="{% url 'trips:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
+        <div class="text-4xl mb-3">✈️</div>
+        <h3 class="font-semibold theme-text-primary mb-2">Trips</h3>
+        <p class="text-sm theme-text-secondary">Trip management</p>
+    </a>
+    <a href="{% url 'routes:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
+        <div class="text-4xl mb-3">🛣️</div>
+        <h3 class="font-semibold theme-text-primary mb-2">Routes</h3>
+        <p class="text-sm theme-text-secondary">Route management</p>
+    </a>
+</div>
+{% endblock %}
+

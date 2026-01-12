@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ vehicle.registration }} - Vehicle Details{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">{{ vehicle.registration }}</h1>
+            <p class="theme-text-secondary">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'vehicles:edit' vehicle.pk %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Edit Vehicle
+            </a>
+            <a href="{% url 'vehicles:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Vehicle Information -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Information -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Vehicle Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Registration</label>
+                    <p class="theme-text-primary font-semibold">{{ vehicle.registration }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Status</label>
+                    <p>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if vehicle.status == 'active' %}bg-green-500/20 text-green-400{% elif vehicle.status == 'maintenance' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {{ vehicle.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Make</label>
+                    <p class="theme-text-primary">{{ vehicle.make }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Model</label>
+                    <p class="theme-text-primary">{{ vehicle.model }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Year</label>
+                    <p class="theme-text-primary">{{ vehicle.year }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Capacity</label>
+                    <p class="theme-text-primary">{{ vehicle.capacity }} passengers</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Online Status</label>
+                    <p>
+                        {% if is_online %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                            ● Online
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                            ○ Offline
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Last Location Update</label>
+                    <p class="theme-text-primary text-sm">
+                        {% if last_location %}
+                            {{ last_location.timestamp|timesince }} ago
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Last Known Location -->
+        {% if last_location %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Last Known Location</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Coordinates</label>
+                    <p class="theme-text-primary font-mono text-sm">{{ last_location.latitude|floatformat:6 }}, {{ last_location.longitude|floatformat:6 }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Speed</label>
+                    <p class="theme-text-primary">{{ last_location.speed|floatformat:1 }} km/h</p>
+                </div>
+                {% if last_location.heading %}
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Heading</label>
+                    <p class="theme-text-primary">{{ last_location.heading|floatformat:0 }}°</p>
+                </div>
+                {% endif %}
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Ignition</label>
+                    <p>
+                        {% if last_location.ignition %}
+                        <span class="text-green-400">● ON</span>
+                        {% else %}
+                        <span class="text-gray-400">○ OFF</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Timestamp</label>
+                    <p class="theme-text-primary text-sm">{{ last_location.timestamp|date:"Y-m-d H:i:s" }}</p>
+                </div>
+                {% if last_location.battery %}
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Battery</label>
+                    <p class="theme-text-primary">{{ last_location.battery }}V</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'tracking:vehicle_tracking' vehicle.pk %}" class="text-orange-500 hover:text-orange-400 text-sm">
+                    View Location History →
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Locations -->
+        {% if recent_locations %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Recent Locations</h2>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                {% for location in recent_locations|slice:":10" %}
+                <div class="theme-bg-tertiary rounded-lg p-3 border theme-border">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <p class="text-sm theme-text-primary font-mono">{{ location.latitude|floatformat:4 }}, {{ location.longitude|floatformat:4 }}</p>
+                            <p class="text-xs theme-text-secondary">{{ location.timestamp|date:"H:i:s" }} • {{ location.speed|floatformat:0 }} km/h</p>
+                        </div>
+                        {% if location.ignition %}
+                        <span class="text-xs text-green-400">●</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'tracking:locations' %}?vehicle={{ vehicle.pk }}" class="text-orange-500 hover:text-orange-400 text-sm">
+                    View All Locations →
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Statistics -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Statistics</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-sm theme-text-secondary">Total Locations</span>
+                    <span class="font-semibold theme-text-primary">{{ vehicle.location_count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm theme-text-secondary">Total Trips</span>
+                    <span class="font-semibold theme-text-primary">{{ vehicle.trip_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trips -->
+        {% if recent_trips %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Recent Trips</h2>
+            <div class="space-y-2">
+                {% for trip in recent_trips|slice:":5" %}
+                <div class="theme-bg-tertiary rounded-lg p-3 border theme-border">
+                    <p class="text-sm theme-text-primary font-medium">
+                        <a href="{% url 'trips:detail' trip.pk %}" class="hover:text-orange-400">
+                            {{ trip.route.code|default:"No Route" }}
+                        </a>
+                    </p>
+                    <p class="text-xs theme-text-secondary">{{ trip.scheduled_start|date:"M d, H:i" }}</p>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1
+                        {% if trip.status == 'completed' %}bg-green-500/20 text-green-400
+                        {% elif trip.status == 'in_progress' %}bg-blue-500/20 text-blue-400
+                        {% elif trip.status == 'cancelled' %}bg-red-500/20 text-red-400
+                        {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                        {{ trip.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Fuel Records -->
+        {% if fuel_records %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Recent Fuel Records</h2>
+            <div class="space-y-2">
+                {% for record in fuel_records|slice:":5" %}
+                <div class="theme-bg-tertiary rounded-lg p-3 border theme-border">
+                    <p class="text-sm theme-text-primary font-medium">{{ record.quantity }}L</p>
+                    <p class="text-xs theme-text-secondary">{{ record.date|date:"M d, H:i" }} • {{ record.get_transaction_type_display }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Actions</h2>
+            <div class="space-y-2">
+                <a href="{% url 'tracking:vehicle_tracking' vehicle.pk %}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Track Vehicle
+                </a>
+                <a href="{% url 'trips:create' %}?vehicle={{ vehicle.pk }}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Schedule Trip
+                </a>
+                <a href="{% url 'fuel:create' %}?vehicle={{ vehicle.pk }}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Add Fuel Record
+                </a>
+                <a href="{% url 'vehicles:delete' vehicle.pk %}" class="block w-full px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition text-center">
+                    Delete Vehicle
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

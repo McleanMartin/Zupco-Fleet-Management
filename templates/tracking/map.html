@@ -1,0 +1,763 @@
+{% extends "base.html" %}
+
+{% block title %}Live Vehicle Tracking - ZUPCO Fleet Management{% endblock %}
+
+{% block fullpage %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[1000] p-4 rounded-lg border {% if message.tags == 'error' %}bg-red-500/90 border-red-500/50 text-white{% elif message.tags == 'success' %}bg-green-500/90 border-green-500/50 text-white{% else %}bg-blue-500/90 border-blue-500/50 text-white{% endif %} shadow-2xl">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div id="map"></div>
+
+<!-- Vehicle Search Panel Toggle (Mobile) -->
+<button id="search-toggle" class="fixed top-20 left-2 z-[1001] md:hidden bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg shadow-lg">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+    </svg>
+</button>
+
+<!-- Vehicle Search Panel -->
+<div id="vehicle-search" class="fixed top-44 left-2 md:left-4 z-[1000] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg p-3 md:p-4 w-[calc(100vw-1rem)] md:w-80 max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-180px)] flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div class="mb-3 flex items-center justify-between">
+        <label class="block text-sm font-medium theme-text-primary">Search Vehicles</label>
+        <button id="search-close" class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    <div class="mb-3">
+        <input 
+            type="text" 
+            id="vehicle-search-input" 
+            placeholder="Search by registration, make, model..."
+            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md theme-bg-secondary theme-text-primary focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+        >
+    </div>
+    <div class="flex-1 overflow-y-auto">
+        <div id="vehicle-list" class="space-y-2">
+            <!-- Vehicle items will be populated here -->
+        </div>
+        <div id="vehicle-search-empty" class="text-center py-8 text-xs md:text-sm theme-text-secondary hidden">
+            No vehicles found
+        </div>
+    </div>
+</div>
+
+<!-- Trail Control Panel Toggle (Mobile) -->
+<button id="trail-toggle" class="fixed top-20 right-2 z-[1001] md:hidden bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg shadow-lg">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+    </svg>
+</button>
+
+<!-- Timeline Control Panel -->
+<div id="trail-control" class="fixed top-20 right-2 md:right-4 z-[1000] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg p-3 md:p-4 w-[calc(100vw-1rem)] md:min-w-[280px] md:max-w-[320px] transform translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div class="mb-3 flex items-center justify-between">
+        <label class="block text-sm font-medium theme-text-primary">Movement Trails</label>
+        <button id="trail-close" class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    <div class="mb-3">
+        <div id="selected-vehicle" class="mb-2 p-2 text-xs theme-bg-secondary rounded border theme-border hidden">
+            <span class="font-medium theme-text-primary">Selected: </span>
+            <span id="selected-vehicle-name" class="theme-text-secondary">None</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="toggle-trails" class="flex-1 px-3 py-2 text-xs md:text-sm font-medium rounded-md bg-gray-400 hover:bg-gray-500 text-white transition cursor-not-allowed" disabled>
+                <span id="trail-status">Show</span> Trails
+            </button>
+        </div>
+        <p class="mt-2 text-xs theme-text-secondary">Click a vehicle marker to select</p>
+    </div>
+    <div class="space-y-3">
+        <div>
+            <label class="block text-xs md:text-sm font-medium theme-text-primary mb-1">Start Date & Time</label>
+            <input type="datetime-local" id="trail-start-datetime" class="w-full px-2 md:px-3 py-2 text-xs md:text-sm border border-gray-300 dark:border-gray-600 rounded-md theme-bg-secondary theme-text-primary focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+        </div>
+        <div>
+            <label class="block text-xs md:text-sm font-medium theme-text-primary mb-1">End Date & Time</label>
+            <input type="datetime-local" id="trail-end-datetime" class="w-full px-2 md:px-3 py-2 text-xs md:text-sm border border-gray-300 dark:border-gray-600 rounded-md theme-bg-secondary theme-text-primary focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        overflow: hidden;
+    }
+    
+    nav {
+        z-index: 1000;
+        position: relative;
+    }
+    
+    #map {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        width: 100vw;
+        height: calc(100vh - 64px);
+        z-index: 1;
+    }
+    
+    #vehicle-search {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #vehicle-search.mobile-open {
+        transform: translateX(0) !important;
+    }
+    
+    #trail-control.mobile-open {
+        transform: translateX(0) !important;
+    }
+    
+    #vehicle-list {
+        min-height: 0;
+    }
+    
+    .vehicle-item {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .vehicle-item:hover {
+        background-color: rgba(249, 115, 22, 0.1);
+    }
+    
+    .vehicle-item.selected {
+        background-color: rgba(249, 115, 22, 0.2);
+        border-color: #f97316;
+    }
+    
+    .vehicle-item.offline {
+        opacity: 0.6;
+    }
+    
+    #trail-control {
+        max-width: 320px;
+    }
+    
+    @media (max-width: 768px) {
+        #vehicle-search {
+            max-height: calc(100vh - 180px);
+        }
+        
+        #trail-control {
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { 
+            opacity: 1; 
+        }
+        50% { 
+            opacity: 0.7; 
+        }
+    }
+    
+    .vehicle-marker {
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    .leaflet-interactive {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let map;
+    let vehicleMarkers = {};
+    let vehicleTrails = {};
+    let updateInterval = null;
+    let trailsVisible = false;
+    let selectedVehicleId = null;
+    let allVehicles = [];
+    let filteredVehicles = [];
+    let highlightedVehicleId = null;
+
+    // Initialize map
+    function initMap() {
+        if (typeof L === 'undefined') {
+            console.error('Leaflet not loaded');
+            setTimeout(initMap, 100);
+            return;
+        }
+
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            console.error('Map container not found');
+            return;
+        }
+
+        try {
+            // Create map centered on Harare, Zimbabwe
+            map = L.map('map').setView([-17.8292, 31.0522], 12);
+
+            // Add OpenStreetMap tile layer (free street maps)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add scale control
+            L.control.scale({
+                imperial: false,
+                metric: true
+            }).addTo(map);
+
+            // Invalidate size after a short delay
+            setTimeout(() => {
+                if (map) map.invalidateSize();
+            }, 100);
+        } catch (error) {
+            console.error('Error initializing map:', error);
+        }
+    }
+
+    // Create vehicle marker icon
+    function createVehicleIcon(vehicle) {
+        const isOnline = vehicle.is_online;
+        const speed = vehicle.last_location?.speed || 0;
+        
+        return L.divIcon({
+            className: 'vehicle-marker',
+            html: `
+                <div style="position: relative;">
+                    <div style="width: 24px; height: 24px; background-color: ${isOnline ? '#f97316' : '#6b7280'}; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); ${isOnline ? 'animation: pulse 2s infinite;' : ''}"></div>
+                    ${speed > 0 ? `<div style="position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; color: ${isOnline ? '#f97316' : '#6b7280'}; white-space: nowrap; background: rgba(255,255,255,0.9); padding: 1px 4px; border-radius: 3px;">${Math.round(speed)}</div>` : ''}
+                </div>
+            `,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+    }
+
+    // Create popup content
+    function createPopupContent(vehicle) {
+        const loc = vehicle.last_location;
+        if (!loc) return 'No location data';
+        
+        const speed = loc.speed ? loc.speed.toFixed(1) : '0.0';
+        const heading = loc.heading !== null && loc.heading !== undefined ? loc.heading.toFixed(0) : 'N/A';
+        const lastUpdate = new Date(loc.timestamp).toLocaleString();
+        
+        return `
+            <div style="min-width: 200px; font-family: system-ui, sans-serif;">
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">${vehicle.registration}</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 12px;">${vehicle.make} ${vehicle.model}</div>
+                <div style="font-size: 12px; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #666;">Status:</span>
+                        <span style="font-weight: bold; color: ${vehicle.is_online ? '#10b981' : '#ef4444'};">
+                            ${vehicle.is_online ? '● Online' : '○ Offline'}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #666;">Speed:</span>
+                        <span style="font-weight: bold; color: #f97316;">${speed} km/h</span>
+                    </div>
+                    ${heading !== 'N/A' ? `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #666;">Heading:</span>
+                        <span style="font-weight: bold;">${heading}°</span>
+                    </div>
+                    ` : ''}
+                    ${loc.ignition !== undefined ? `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #666;">Ignition:</span>
+                        <span style="font-weight: bold; color: ${loc.ignition ? '#10b981' : '#9ca3af'};">
+                            ${loc.ignition ? 'ON' : 'OFF'}
+                        </span>
+                    </div>
+                    ` : ''}
+                    ${loc.battery ? `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #666;">Battery:</span>
+                        <span style="font-weight: bold;">${loc.battery}V</span>
+                    </div>
+                    ` : ''}
+                    <div style="border-top: 1px solid #e5e5e5; padding-top: 8px; margin-top: 8px; font-size: 11px; color: #999;">
+                        Updated: ${lastUpdate}
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #e5e5e5; margin-top: 12px; padding-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+                    <a href="/vehicles/${vehicle.id}/" style="display: block; text-align: center; padding: 6px 12px; background-color: #f97316; color: white; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                        View Details
+                    </a>
+                    <a href="/tracking/vehicles/${vehicle.id}/" style="display: block; text-align: center; padding: 6px 12px; background-color: #f3f4f6; color: #374151; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                        Track History
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    // Update map with vehicle data
+    function updateMapWithVehicles() {
+        fetch('{% url "tracking:vehicles_json" %}')
+            .then(response => response.json())
+            .then(vehicles => {
+                allVehicles = vehicles;
+                updateVehicleList();
+                
+                const vehiclesWithLocation = vehicles.filter(v => v.last_location);
+                const currentVehicleIds = new Set(vehiclesWithLocation.map(v => v.id));
+                
+                // Remove old markers
+                Object.keys(vehicleMarkers).forEach(id => {
+                    if (!currentVehicleIds.has(parseInt(id))) {
+                        map.removeLayer(vehicleMarkers[id]);
+                        delete vehicleMarkers[id];
+                    }
+                });
+
+                // Update or create markers
+                vehiclesWithLocation.forEach(vehicle => {
+                    const lat = parseFloat(vehicle.last_location.latitude);
+                    const lon = parseFloat(vehicle.last_location.longitude);
+                    const position = [lat, lon];
+                    
+                    if (vehicleMarkers[vehicle.id]) {
+                        vehicleMarkers[vehicle.id].setLatLng(position);
+                        vehicleMarkers[vehicle.id].setIcon(createVehicleIcon(vehicle));
+                        vehicleMarkers[vehicle.id].setPopupContent(createPopupContent(vehicle));
+                    } else {
+                        const icon = createVehicleIcon(vehicle);
+                        const marker = L.marker(position, { icon: icon })
+                            .addTo(map)
+                            .bindPopup(createPopupContent(vehicle));
+                        
+                        marker.on('click', function() {
+                            selectVehicle(vehicle.id, vehicle.registration, vehicle.make, vehicle.model);
+                            highlightVehicleInList(vehicle.id);
+                            map.setView(position, Math.max(map.getZoom(), 15));
+                        });
+                        
+                        vehicleMarkers[vehicle.id] = marker;
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error updating map:', error);
+            });
+    }
+    
+    // Filter vehicles based on search query
+    function filterVehicles(query) {
+        if (!query || query.trim() === '') {
+            filteredVehicles = allVehicles;
+        } else {
+            const searchTerm = query.toLowerCase().trim();
+            filteredVehicles = allVehicles.filter(vehicle => {
+                const registration = (vehicle.registration || '').toLowerCase();
+                const make = (vehicle.make || '').toLowerCase();
+                const model = (vehicle.model || '').toLowerCase();
+                return registration.includes(searchTerm) || 
+                       make.includes(searchTerm) || 
+                       model.includes(searchTerm) ||
+                       `${make} ${model}`.includes(searchTerm);
+            });
+        }
+        updateVehicleList();
+    }
+    
+    // Update vehicle list in search panel
+    function updateVehicleList() {
+        const vehicleList = document.getElementById('vehicle-list');
+        const emptyMessage = document.getElementById('vehicle-search-empty');
+        
+        if (!vehicleList) return;
+        
+        vehicleList.innerHTML = '';
+        
+        if (filteredVehicles.length === 0) {
+            vehicleList.classList.add('hidden');
+            emptyMessage.classList.remove('hidden');
+            return;
+        }
+        
+        vehicleList.classList.remove('hidden');
+        emptyMessage.classList.add('hidden');
+        
+        filteredVehicles.forEach(vehicle => {
+            const vehicleItem = document.createElement('div');
+            vehicleItem.className = `vehicle-item p-3 border border-gray-200 dark:border-gray-700 rounded-md ${!vehicle.is_online ? 'offline' : ''} ${highlightedVehicleId === vehicle.id ? 'selected border-orange-500' : ''}`;
+            vehicleItem.dataset.vehicleId = vehicle.id;
+            
+            const hasLocation = vehicle.last_location !== null;
+            const speed = hasLocation ? (vehicle.last_location.speed || 0).toFixed(0) : 'N/A';
+            const statusColor = vehicle.is_online ? '#10b981' : '#6b7280';
+            const statusText = vehicle.is_online ? 'Online' : 'Offline';
+            
+            vehicleItem.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="font-medium theme-text-primary text-sm">${vehicle.registration}</div>
+                        <div class="text-xs theme-text-secondary mt-1">${vehicle.make} ${vehicle.model}</div>
+                        <div class="flex items-center mt-2 space-x-3 text-xs">
+                            <span class="flex items-center">
+                                <span style="color: ${statusColor};" class="mr-1">●</span>
+                                <span class="theme-text-secondary">${statusText}</span>
+                            </span>
+                            ${hasLocation ? `<span class="theme-text-secondary">${speed} km/h</span>` : ''}
+                        </div>
+                    </div>
+                    ${!hasLocation ? '<span class="text-xs theme-text-secondary opacity-50">No location</span>' : ''}
+                </div>
+            `;
+            
+            vehicleItem.addEventListener('click', function() {
+                if (hasLocation) {
+                    const lat = parseFloat(vehicle.last_location.latitude);
+                    const lon = parseFloat(vehicle.last_location.longitude);
+                    const position = [lat, lon];
+                    
+                    // Pan to vehicle
+                    map.setView(position, Math.max(map.getZoom(), 15));
+                    
+                    // Open popup if marker exists
+                    if (vehicleMarkers[vehicle.id]) {
+                        vehicleMarkers[vehicle.id].openPopup();
+                    }
+                    
+                    // Select vehicle for trails
+                    selectVehicle(vehicle.id, vehicle.registration, vehicle.make, vehicle.model);
+                    
+                    // Highlight in list
+                    highlightVehicleInList(vehicle.id);
+                }
+            });
+            
+            vehicleList.appendChild(vehicleItem);
+        });
+    }
+    
+    // Highlight vehicle in search list
+    function highlightVehicleInList(vehicleId) {
+        highlightedVehicleId = vehicleId;
+        updateVehicleList();
+        
+        // Scroll to highlighted item
+        setTimeout(() => {
+            const item = document.querySelector(`.vehicle-item[data-vehicle-id="${vehicleId}"]`);
+            if (item) {
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 100);
+    }
+
+    // Start real-time updates
+    function startRealTimeUpdates() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateMapWithVehicles();
+        updateInterval = setInterval(updateMapWithVehicles, 5000);
+    }
+
+    // Stop real-time updates
+    function stopRealTimeUpdates() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+
+    // Get color for trail based on vehicle ID (consistent colors)
+    function getTrailColor(vehicleId) {
+        const colors = [
+            '#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6',
+            '#f59e0b', '#06b6d4', '#ec4899', '#84cc16', '#6366f1'
+        ];
+        return colors[vehicleId % colors.length];
+    }
+
+    // Select vehicle for trail display
+    function selectVehicle(vehicleId, registration, make, model) {
+        selectedVehicleId = vehicleId;
+        
+        // Update UI
+        const selectedVehicleDiv = document.getElementById('selected-vehicle');
+        const selectedVehicleName = document.getElementById('selected-vehicle-name');
+        const toggleBtn = document.getElementById('toggle-trails');
+        
+        selectedVehicleName.textContent = `${registration} - ${make} ${model}`;
+        selectedVehicleDiv.classList.remove('hidden');
+        
+        // Enable toggle button
+        toggleBtn.disabled = false;
+        toggleBtn.classList.remove('bg-gray-400', 'hover:bg-gray-500', 'cursor-not-allowed');
+        toggleBtn.classList.add('bg-orange-500', 'hover:bg-orange-600', 'cursor-pointer');
+        
+        // Set default date/time if not set (last 24 hours)
+        const startInput = document.getElementById('trail-start-datetime');
+        const endInput = document.getElementById('trail-end-datetime');
+        
+        if (!startInput.value || !endInput.value) {
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            // Format for datetime-local input (YYYY-MM-DDTHH:mm)
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+            
+            startInput.value = formatDateTime(yesterday);
+            endInput.value = formatDateTime(now);
+        }
+        
+        // If trails are visible, update them
+        if (trailsVisible) {
+            updateTrails();
+        }
+    }
+
+    // Format datetime for API (ISO format)
+    function formatDateTimeForAPI(datetimeLocal) {
+        if (!datetimeLocal) return null;
+        // datetime-local returns YYYY-MM-DDTHH:mm, we need to add seconds
+        return datetimeLocal + ':00';
+    }
+
+    // Update trails on map
+    function updateTrails() {
+        if (!map || !trailsVisible || !selectedVehicleId) return;
+
+        // Remove all existing trails
+        Object.values(vehicleTrails).forEach(trail => {
+            if (trail && map.hasLayer(trail)) {
+                map.removeLayer(trail);
+            }
+        });
+        vehicleTrails = {};
+
+        // Get date/time values
+        const startInput = document.getElementById('trail-start-datetime');
+        const endInput = document.getElementById('trail-end-datetime');
+        
+        const startDateTime = formatDateTimeForAPI(startInput.value);
+        const endDateTime = formatDateTimeForAPI(endInput.value);
+        
+        if (!startDateTime || !endDateTime) {
+            console.error('Start and end datetime are required');
+            return;
+        }
+
+        // Build API URL
+        const apiUrl = `{% url "tracking:trails_json" %}?vehicle_id=${selectedVehicleId}&start_datetime=${encodeURIComponent(startDateTime)}&end_datetime=${encodeURIComponent(endDateTime)}`;
+
+        // Fetch trail data
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(trailsData => {
+                Object.keys(trailsData).forEach(vehicleId => {
+                    const trailData = trailsData[vehicleId];
+                    const points = trailData.points;
+
+                    if (points.length < 2) return; // Need at least 2 points for a trail
+
+                    // Convert points to lat/lng array
+                    const latlngs = points.map(point => [
+                        parseFloat(point.latitude),
+                        parseFloat(point.longitude)
+                    ]);
+
+                    // Create polyline with color based on vehicle
+                    const color = getTrailColor(trailData.vehicle_id);
+                    const polyline = L.polyline(latlngs, {
+                        color: color,
+                        weight: 3,
+                        opacity: 0.7,
+                        smoothFactor: 1
+                    }).addTo(map);
+
+                    // Add popup with vehicle info
+                    const startTime = new Date(points[0].timestamp).toLocaleString();
+                    const endTime = new Date(points[points.length - 1].timestamp).toLocaleString();
+                    polyline.bindPopup(`
+                        <div style="min-width: 180px; font-family: system-ui, sans-serif;">
+                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">${trailData.registration}</div>
+                            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">${trailData.make} ${trailData.model}</div>
+                            <div style="font-size: 11px; line-height: 1.5; color: #666;">
+                                <div><strong>Points:</strong> ${points.length}</div>
+                                <div style="margin-top: 4px;"><strong>Start:</strong> ${startTime}</div>
+                                <div><strong>End:</strong> ${endTime}</div>
+                            </div>
+                        </div>
+                    `);
+
+                    vehicleTrails[trailData.vehicle_id] = polyline;
+                });
+            })
+            .catch(error => {
+                console.error('Error updating trails:', error);
+            });
+    }
+
+    // Toggle trails visibility
+    function toggleTrails() {
+        if (!selectedVehicleId) return;
+        
+        trailsVisible = !trailsVisible;
+        const statusText = document.getElementById('trail-status');
+        const toggleBtn = document.getElementById('toggle-trails');
+
+        if (trailsVisible) {
+            statusText.textContent = 'Hide';
+            toggleBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+            toggleBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+            updateTrails();
+        } else {
+            statusText.textContent = 'Show';
+            toggleBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+            toggleBtn.classList.add('bg-orange-500', 'hover:bg-orange-600');
+            // Remove all trails
+            Object.values(vehicleTrails).forEach(trail => {
+                if (trail && map.hasLayer(trail)) {
+                    map.removeLayer(trail);
+                }
+            });
+            vehicleTrails = {};
+        }
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (map) {
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            initMap();
+            if (map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                    updateMapWithVehicles();
+                    startRealTimeUpdates();
+
+                    // Setup search functionality
+                    const searchInput = document.getElementById('vehicle-search-input');
+                    const searchToggle = document.getElementById('search-toggle');
+                    const searchClose = document.getElementById('search-close');
+                    const searchPanel = document.getElementById('vehicle-search');
+                    
+                    if (searchInput) {
+                        searchInput.addEventListener('input', function() {
+                            filterVehicles(this.value);
+                        });
+                        
+                        // Initial filter (show all)
+                        filterVehicles('');
+                    }
+                    
+                    // Mobile search panel toggle
+                    if (searchToggle && searchPanel) {
+                        searchToggle.addEventListener('click', function() {
+                            searchPanel.classList.add('mobile-open');
+                        });
+                    }
+                    
+                    if (searchClose && searchPanel) {
+                        searchClose.addEventListener('click', function() {
+                            searchPanel.classList.remove('mobile-open');
+                        });
+                    }
+                    
+                    // Close search panel when clicking outside (mobile)
+                    if (searchPanel) {
+                        document.addEventListener('click', function(event) {
+                            if (window.innerWidth < 768) {
+                                if (!searchPanel.contains(event.target) && 
+                                    searchToggle && !searchToggle.contains(event.target) &&
+                                    searchPanel.classList.contains('mobile-open')) {
+                                    searchPanel.classList.remove('mobile-open');
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Setup trail controls
+                    const toggleBtn = document.getElementById('toggle-trails');
+                    const trailToggle = document.getElementById('trail-toggle');
+                    const trailClose = document.getElementById('trail-close');
+                    const trailPanel = document.getElementById('trail-control');
+                    const startInput = document.getElementById('trail-start-datetime');
+                    const endInput = document.getElementById('trail-end-datetime');
+
+                    if (toggleBtn) {
+                        toggleBtn.addEventListener('click', toggleTrails);
+                    }
+                    
+                    // Mobile trail panel toggle
+                    if (trailToggle && trailPanel) {
+                        trailToggle.addEventListener('click', function() {
+                            trailPanel.classList.add('mobile-open');
+                        });
+                    }
+                    
+                    if (trailClose && trailPanel) {
+                        trailClose.addEventListener('click', function() {
+                            trailPanel.classList.remove('mobile-open');
+                        });
+                    }
+                    
+                    // Close trail panel when clicking outside (mobile)
+                    if (trailPanel) {
+                        document.addEventListener('click', function(event) {
+                            if (window.innerWidth < 768) {
+                                if (!trailPanel.contains(event.target) && 
+                                    trailToggle && !trailToggle.contains(event.target) &&
+                                    trailPanel.classList.contains('mobile-open')) {
+                                    trailPanel.classList.remove('mobile-open');
+                                }
+                            }
+                        });
+                    }
+
+                    if (startInput) {
+                        startInput.addEventListener('change', function() {
+                            if (trailsVisible && selectedVehicleId) {
+                                updateTrails();
+                            }
+                        });
+                    }
+
+                    if (endInput) {
+                        endInput.addEventListener('change', function() {
+                            if (trailsVisible && selectedVehicleId) {
+                                updateTrails();
+                            }
+                        });
+                    }
+                }, 300);
+            }
+        }, 100);
+    });
+
+    window.addEventListener('beforeunload', stopRealTimeUpdates);
+</script>
+{% endblock %}
+

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ route.code }} - Route Details{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">{{ route.code }} - {{ route.name }}</h1>
+            <p class="theme-text-secondary">{% if route.description %}{{ route.description }}{% else %}Route details{% endif %}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'routes:edit' route.pk %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Edit Route
+            </a>
+            <a href="{% url 'routes:point_create' route.pk %}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                Add Stop
+            </a>
+            <a href="{% url 'routes:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Route Information -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Information -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Route Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Route Code</label>
+                    <p class="theme-text-primary font-semibold">{{ route.code }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Status</label>
+                    <p>
+                        {% if route.is_active %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                            Inactive
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-sm font-medium theme-text-secondary">Name</label>
+                    <p class="theme-text-primary">{{ route.name }}</p>
+                </div>
+                {% if route.description %}
+                <div class="md:col-span-2">
+                    <label class="text-sm font-medium theme-text-secondary">Description</label>
+                    <p class="theme-text-primary">{{ route.description }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Total Stops</label>
+                    <p class="theme-text-primary font-semibold">{{ route_points|length }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Total Trips</label>
+                    <p class="theme-text-primary font-semibold">{{ recent_trips|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Points/Stops -->
+        <div class="theme-card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold theme-text-primary">Route Points ({{ route_points|length }})</h2>
+                <a href="{% url 'routes:point_create' route.pk %}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                    Add Stop
+                </a>
+            </div>
+            {% if route_points %}
+            <div class="space-y-3">
+                {% for point in route_points %}
+                <div class="theme-bg-tertiary rounded-lg p-4 border theme-border">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-4 flex-1">
+                            <div class="flex-shrink-0 w-8 h-8 bg-orange-500/20 text-orange-500 rounded-full flex items-center justify-center font-bold text-sm">
+                                {{ point.sequence }}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold theme-text-primary mb-1">{{ point.name }}</h3>
+                                <p class="text-sm theme-text-secondary font-mono">{{ point.latitude|floatformat:6 }}, {{ point.longitude|floatformat:6 }}</p>
+                                {% if point.scheduled_time %}
+                                <p class="text-xs theme-text-tertiary mt-1">Scheduled: {{ point.scheduled_time|time:"H:i" }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'routes:point_edit' route.pk point.pk %}" class="px-3 py-1 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded transition">
+                                Edit
+                            </a>
+                            <a href="{% url 'routes:point_delete' route.pk point.pk %}" class="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded transition">
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <p class="theme-text-secondary mb-4">No route points defined yet.</p>
+                <a href="{% url 'routes:point_create' route.pk %}" class="inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                    Add First Stop
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Trips -->
+        {% if recent_trips %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Recent Trips</h2>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                {% for trip in recent_trips|slice:":10" %}
+                <div class="theme-bg-tertiary rounded-lg p-3 border theme-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm theme-text-primary font-medium">
+                                <a href="{% url 'trips:detail' trip.pk %}" class="hover:text-orange-400">
+                                    {{ trip.vehicle.registration }}
+                                </a>
+                            </p>
+                            <p class="text-xs theme-text-secondary">{{ trip.scheduled_start|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if trip.status == 'completed' %}bg-green-500/20 text-green-400
+                            {% elif trip.status == 'in_progress' %}bg-blue-500/20 text-blue-400
+                            {% elif trip.status == 'cancelled' %}bg-red-500/20 text-red-400
+                            {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {{ trip.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Actions -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Actions</h2>
+            <div class="space-y-2">
+                <a href="{% url 'routes:point_create' route.pk %}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Add Stop
+                </a>
+                <a href="{% url 'trips:create' %}?route={{ route.pk }}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Schedule Trip
+                </a>
+                <a href="{% url 'routes:delete' route.pk %}" class="block w-full px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition text-center">
+                    Delete Route
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

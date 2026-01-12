@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Fuel Record Details - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">Fuel Record Details</h1>
+            <p class="theme-text-secondary">{{ fuel_record.vehicle.registration }} • {{ fuel_record.date|date:"F d, Y H:i" }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'fuel:edit' fuel_record.pk %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Edit Record
+            </a>
+            <a href="{% url 'fuel:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Record Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Vehicle</label>
+                    <p class="theme-text-primary font-semibold">
+                        <a href="{% url 'vehicles:detail' fuel_record.vehicle.pk %}" class="text-orange-500 hover:text-orange-400">
+                            {{ fuel_record.vehicle.registration }}
+                        </a>
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Transaction Type</label>
+                    <p>
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if fuel_record.transaction_type == 'refuel' %}bg-green-500/20 text-green-400
+                            {% else %}bg-blue-500/20 text-blue-400{% endif %}">
+                            {{ fuel_record.get_transaction_type_display }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Date & Time</label>
+                    <p class="theme-text-primary">{{ fuel_record.date|date:"Y-m-d H:i:s" }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Fuel Type</label>
+                    <p class="theme-text-primary">{{ fuel_record.get_fuel_type_display }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Quantity</label>
+                    <p class="theme-text-primary font-semibold text-lg">{{ fuel_record.quantity|floatformat:2 }}L</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Total Cost</label>
+                    <p class="theme-text-primary font-semibold text-lg">${{ fuel_record.cost|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Cost per Liter</label>
+                    <p class="theme-text-primary font-semibold">${{ fuel_record.cost_per_liter|floatformat:2 }}/L</p>
+                </div>
+                {% if fuel_record.odometer_reading %}
+                <div>
+                    <label class="text-sm font-medium theme-text-secondary">Odometer Reading</label>
+                    <p class="theme-text-primary">{{ fuel_record.odometer_reading }} km</p>
+                </div>
+                {% endif %}
+                {% if fuel_record.notes %}
+                <div class="md:col-span-2">
+                    <label class="text-sm font-medium theme-text-secondary">Notes</label>
+                    <p class="theme-text-primary">{{ fuel_record.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if related_records %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Related Records (Same Vehicle)</h2>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                {% for record in related_records %}
+                <div class="theme-bg-tertiary rounded-lg p-3 border theme-border">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm theme-text-primary font-medium">{{ record.quantity|floatformat:2 }}L • ${{ record.cost|floatformat:2 }}</p>
+                            <p class="text-xs theme-text-secondary">{{ record.date|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <a href="{% url 'fuel:detail' record.pk %}" class="text-orange-500 hover:text-orange-400 text-sm">View</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="space-y-6">
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Actions</h2>
+            <div class="space-y-2">
+                <a href="{% url 'fuel:edit' fuel_record.pk %}" class="block w-full px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                    Edit Record
+                </a>
+                <a href="{% url 'fuel:delete' fuel_record.pk %}" class="block w-full px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition text-center">
+                    Delete Record
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

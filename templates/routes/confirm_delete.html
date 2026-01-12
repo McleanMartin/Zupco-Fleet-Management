@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Route - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold theme-text-primary">Delete Route</h1>
+        <p class="theme-text-secondary mt-2">Confirm deletion of route</p>
+    </div>
+
+    <div class="theme-card p-6 border-red-500/50">
+        <div class="mb-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold theme-text-primary">Warning: This action cannot be undone</h2>
+                    <p class="text-sm theme-text-secondary">You are about to permanently delete this route from the system.</p>
+                </div>
+            </div>
+
+            <div class="theme-bg-tertiary rounded-lg p-4 border theme-border">
+                <h3 class="font-semibold theme-text-primary mb-3">Route Information</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="theme-text-secondary">Code:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ route.code }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Status:</span>
+                        <span class="theme-text-primary font-medium ml-2">
+                            {% if route.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    <div class="md:col-span-2">
+                        <span class="theme-text-secondary">Name:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ route.name }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Stops:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ route.points.count }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Trips:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ route.trips.count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg">
+                <p class="text-sm theme-text-secondary">
+                    <strong class="theme-text-primary">Note:</strong> This will also delete all associated:
+                    <ul class="list-disc list-inside mt-2 ml-4">
+                        <li>Route points/stops</li>
+                        <li>Trip records (will lose route reference)</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center space-x-4">
+                <button type="submit" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                    Yes, Delete Route
+                </button>
+                <a href="{% url 'routes:detail' route.pk %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}ZUPCO IoT Fleet Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="min-h-screen flex items-center justify-center theme-bg-primary">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center">
+            <!-- Logo/Title -->
+            <h1 class="text-6xl font-bold text-orange-500 mb-4">ZUPCO</h1>
+            <p class="text-3xl font-semibold theme-text-primary mb-2">IoT Fleet Management System</p>
+            <p class="text-xl theme-text-secondary mb-12 max-w-2xl mx-auto">
+                Real-time vehicle tracking, route management, and fuel monitoring for efficient fleet operations
+            </p>
+            
+            <!-- CTA Buttons -->
+            <div class="flex items-center justify-center space-x-4 mb-16">
+                <a href="{% url 'core:login' %}" class="px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl">
+                    Sign In
+                </a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:index' %}" class="px-8 py-4 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-semibold text-lg transition border theme-border">
+                    View Dashboard
+                </a>
+                {% endif %}
+            </div>
+            
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+                <!-- Feature 1 -->
+                <div class="theme-card theme-card-hover p-6">
+                    <div class="bg-orange-500/20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold theme-text-primary mb-2">Real-Time Tracking</h3>
+                    <p class="theme-text-secondary">Monitor vehicle locations in real-time with GPS tracking and live updates</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="theme-card theme-card-hover p-6">
+                    <div class="bg-orange-500/20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold theme-text-primary mb-2">Route Management</h3>
+                    <p class="theme-text-secondary">Define and monitor routes with scheduled stops and adherence tracking</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="theme-card theme-card-hover p-6">
+                    <div class="bg-orange-500/20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold theme-text-primary mb-2">Fuel Monitoring</h3>
+                    <p class="theme-text-secondary">Track fuel consumption, costs, and optimize fuel efficiency</p>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-orange-500 mb-2">{{ total_vehicles|default:0 }}</p>
+                    <p class="theme-text-secondary">Vehicles</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-orange-500 mb-2">{{ active_routes|default:0 }}</p>
+                    <p class="theme-text-secondary">Routes</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-orange-500 mb-2">{{ active_trips|default:0 }}</p>
+                    <p class="theme-text-secondary">Trips Today</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-orange-500 mb-2">{{ online_vehicles|default:0 }}</p>
+                    <p class="theme-text-secondary">Online</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

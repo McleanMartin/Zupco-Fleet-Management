@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Tracking: {{ vehicle.registration }} - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">{{ vehicle.registration }}</h1>
+            <p class="theme-text-secondary">Location history for {{ vehicle.make }} {{ vehicle.model }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'vehicles:detail' vehicle.pk %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Vehicle Details
+            </a>
+            <a href="{% url 'tracking:map' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Live Map
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Map with Route -->
+    <div class="lg:col-span-2">
+        <div class="theme-card p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold theme-text-primary">Route Map</h2>
+                <div class="flex items-center space-x-2">
+                    {% if is_online %}
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm theme-text-secondary">Online</span>
+                    {% else %}
+                    <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                    <span class="text-sm theme-text-secondary">Offline</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="map" class="h-96 rounded-lg border theme-border"></div>
+        </div>
+    </div>
+
+    <!-- Vehicle Info & Recent Locations -->
+    <div class="space-y-6">
+        <!-- Vehicle Info -->
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Vehicle Info</h2>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="theme-text-secondary">Status:</span>
+                    <span class="theme-text-primary font-medium">
+                        {% if is_online %}
+                        <span class="text-green-400">● Online</span>
+                        {% else %}
+                        <span class="text-gray-400">○ Offline</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% if last_location %}
+                <div class="flex justify-between">
+                    <span class="theme-text-secondary">Last Speed:</span>
+                    <span class="theme-text-primary font-medium">{{ last_location.speed|floatformat:1 }} km/h</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="theme-text-secondary">Last Update:</span>
+                    <span class="theme-text-primary font-medium text-xs">{{ last_location.timestamp|timesince }} ago</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="theme-card p-4">
+            <form method="get" class="space-y-3">
+                <div>
+                    <label for="hours" class="block text-sm font-medium theme-text-primary mb-2">Time Range</label>
+                    <select name="hours" id="hours" class="w-full px-3 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="1" {% if hours_filter == 1 %}selected{% endif %}>Last Hour</option>
+                        <option value="6" {% if hours_filter == 6 %}selected{% endif %}>Last 6 Hours</option>
+                        <option value="24" {% if hours_filter == 24 %}selected{% endif %}>Last 24 Hours</option>
+                        <option value="168" {% if hours_filter == 168 %}selected{% endif %}>Last Week</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                    Update
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Locations -->
+        {% if locations %}
+        <div class="theme-card p-6">
+            <h2 class="text-xl font-semibold theme-text-primary mb-4">Recent Locations ({{ locations|length }})</h2>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                {% for location in locations|slice:":20" %}
+                <div class="theme-bg-tertiary rounded-lg p-2 border theme-border text-xs">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="theme-text-primary font-mono">{{ location.timestamp|date:"H:i:s" }}</span>
+                        <span class="text-orange-500">{{ location.speed|floatformat:0 }} km/h</span>
+                    </div>
+                    <p class="theme-text-secondary font-mono text-xs">{{ location.latitude|floatformat:4 }}, {{ location.longitude|floatformat:4 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if locations %}
+<!-- Location History Table -->
+<div class="mt-6 theme-card p-6">
+    <h2 class="text-xl font-semibold theme-text-primary mb-4">Location History</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b theme-border">
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold text-sm">Timestamp</th>
+                    <th class="text-left py-3 px-4 theme-text-primary font-semibold text-sm">Coordinates</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold text-sm">Speed</th>
+                    <th class="text-right py-3 px-4 theme-text-primary font-semibold text-sm">Heading</th>
+                    <th class="text-center py-3 px-4 theme-text-primary font-semibold text-sm">Ignition</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for location in locations %}
+                <tr class="border-b theme-border hover:theme-bg-tertiary transition">
+                    <td class="py-3 px-4 theme-text-secondary text-sm">{{ location.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td class="py-3 px-4 theme-text-primary font-mono text-xs">
+                        {{ location.latitude|floatformat:6 }}, {{ location.longitude|floatformat:6 }}
+                    </td>
+                    <td class="py-3 px-4 text-right theme-text-primary text-sm">{{ location.speed|floatformat:1 }} km/h</td>
+                    <td class="py-3 px-4 text-right theme-text-secondary text-sm">
+                        {% if location.heading %}{{ location.heading|floatformat:0 }}°{% else %}—{% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        {% if location.ignition %}
+                        <span class="text-green-400">●</span>
+                        {% else %}
+                        <span class="text-gray-400">○</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map;
+    let routePolyline;
+
+    function initMap() {
+        {% if last_location %}
+        map = L.map('map').setView([{{ last_location.latitude }}, {{ last_location.longitude }}], 13);
+        {% else %}
+        map = L.map('map').setView([-17.8292, 31.0522], 12);
+        {% endif %}
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        {% if locations %}
+        const locations = [
+            {% for location in locations %}
+            [{{ location.latitude }}, {{ location.longitude }}, {{ location.speed|default:0 }}, {{ location.heading|default:"null" }}]{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // Draw route line
+        const latlngs = locations.map(loc => [loc[0], loc[1]]);
+        routePolyline = L.polyline(latlngs, {
+            color: '#f97316',
+            weight: 3,
+            opacity: 0.7
+        }).addTo(map);
+
+        // Add markers for start and end
+        if (locations.length > 0) {
+            const start = locations[0];
+            const end = locations[locations.length - 1];
+            
+            L.marker([start[0], start[1]]).addTo(map)
+                .bindPopup('Start: {{ locations.0.timestamp|date:"H:i:s" }}');
+            L.marker([end[0], end[1]]).addTo(map)
+                .bindPopup('End: {{ locations|last.timestamp|date:"H:i:s" }}');
+        }
+
+        // Fit bounds to show entire route
+        if (latlngs.length > 0) {
+            map.fitBounds(latlngs);
+        }
+        {% elif last_location %}
+        L.marker([{{ last_location.latitude }}, {{ last_location.longitude }}]).addTo(map)
+            .bindPopup('{{ vehicle.registration }}<br>Last known location');
+        {% endif %}
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}
+
