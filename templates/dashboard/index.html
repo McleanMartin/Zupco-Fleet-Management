@@ -5,13 +5,13 @@
 {% block content %}
 <!-- Dashboard Header -->
 <div class="mb-8">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold theme-text-primary mb-2">Dashboard</h1>
-            <p class="theme-text-secondary">Welcome back, {{ user.username }}</p>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold theme-text-primary mb-1 sm:mb-2">Dashboard</h1>
+            <p class="text-sm sm:text-base theme-text-secondary">Welcome back, {{ user.username }}</p>
         </div>
-        <div class="flex items-center space-x-4">
-            <a href="{% url 'dashboard:index' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'dashboard:index' %}" class="px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-xs sm:text-sm font-medium transition transform hover:scale-105">
                 Analytics
             </a>
         </div>
@@ -20,64 +20,85 @@
 
 <!-- Stats Overview -->
 <div class="mb-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="stats-container"
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6" id="stats-container"
          hx-get="{% url 'dashboard:stats' %}" 
          hx-trigger="load, every 30s"
          hx-swap="innerHTML">
         <!-- Stats will be loaded here -->
         <div class="animate-pulse">
-            <div class="theme-bg-secondary rounded-lg p-6 border theme-border h-24"></div>
+            <div class="theme-bg-secondary rounded-lg p-4 sm:p-6 border theme-border h-24 stat-card-skeleton"></div>
         </div>
     </div>
 </div>
 
-<!-- Quick Links -->
+<!-- Quick Links Section -->
 <div class="mb-8">
-    <h2 class="text-xl font-semibold theme-text-primary mb-4">Quick Access</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <a href="{% url 'tracking:map' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">🗺️</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Live Tracking</h3>
-            <p class="text-sm theme-text-secondary">View real-time vehicle locations</p>
+    <div class="mb-4 sm:mb-6">
+        <h2 class="text-xl sm:text-2xl font-bold theme-text-primary">Quick Access</h2>
+        <p class="text-xs sm:text-sm theme-text-secondary mt-1">Jump to commonly used features</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+        <a href="{% url 'tracking:map' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-orange-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">Tracking</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Live GPS</p>
         </a>
-        <a href="{% url 'vehicles:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">🚗</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Vehicles</h3>
-            <p class="text-sm theme-text-secondary">Manage fleet vehicles</p>
+        <a href="{% url 'vehicles:list' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-blue-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">Vehicles</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Fleet Mgmt</p>
         </a>
-        <a href="{% url 'routes:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">🛣️</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Routes</h3>
-            <p class="text-sm theme-text-secondary">Configure bus routes</p>
+        <a href="{% url 'routes:list' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-green-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">Routes</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Configure</p>
         </a>
-        <a href="{% url 'trips:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">✈️</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Trips</h3>
-            <p class="text-sm theme-text-secondary">Schedule and track trips</p>
+        <a href="{% url 'trips:list' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-purple-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">Trips</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Schedule</p>
         </a>
-        <a href="{% url 'fuel:list' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">⛽</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Fuel</h3>
-            <p class="text-sm theme-text-secondary">Track fuel consumption</p>
+        <a href="{% url 'fuel:list' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-red-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">Fuel</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Consumption</p>
         </a>
-        <a href="{% url 'tracking:locations' %}" class="theme-card theme-card-hover p-6 text-center transition">
-            <div class="text-4xl mb-3">📍</div>
-            <h3 class="font-semibold theme-text-primary mb-2">Locations</h3>
-            <p class="text-sm theme-text-secondary">View location history</p>
+        <a href="{% url 'tracking:locations' %}" class="dashboard-quick-link group">
+            <svg class="w-8 h-8 text-cyan-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <h3 class="font-semibold text-xs sm:text-sm theme-text-primary">History</h3>
+            <p class="text-xs theme-text-secondary hidden sm:block">Locations</p>
         </a>
     </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Recent Activity Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
     <div class="lg:col-span-2">
-        <div class="theme-card theme-card-hover p-6">
-            <h3 class="text-xl font-semibold theme-text-primary mb-4">Recent Activity</h3>
+        <div class="dashboard-card">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold theme-text-primary">Recent Activity</h3>
+                    <p class="text-xs sm:text-sm theme-text-secondary mt-1">Latest updates from your fleet</p>
+                </div>
+            </div>
             <div id="recent-activity"
                  hx-get="{% url 'dashboard:activity' %}" 
                  hx-trigger="load, every 10s"
                  hx-swap="innerHTML">
-                <div class="space-y-2">
+                <div class="space-y-2 sm:space-y-3">
                     <div class="animate-pulse theme-bg-tertiary rounded-lg h-10"></div>
                     <div class="animate-pulse theme-bg-tertiary rounded-lg h-10"></div>
                 </div>
@@ -86,8 +107,13 @@
     </div>
     
     <div>
-        <div class="theme-card theme-card-hover p-6">
-            <h3 class="text-xl font-semibold theme-text-primary mb-4">System Status</h3>
+        <div class="dashboard-card h-full">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold theme-text-primary">System Status</h3>
+                    <p class="text-xs sm:text-sm theme-text-secondary mt-1">Current health</p>
+                </div>
+            </div>
             <div id="system-status"
                  hx-get="{% url 'dashboard:status' %}" 
                  hx-trigger="load, every 20s"

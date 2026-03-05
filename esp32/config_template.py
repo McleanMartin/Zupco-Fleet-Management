@@ -11,7 +11,7 @@ WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
 
 # API Configuration
 API_URL = "http://192.168.1.100:8000/api/locations/create/"  # Update with your server IP
-VEHICLE_ID = 1  # Update with your vehicle ID from Django admin
+VEHICLE_REGISTRATION = "ABC123"  # Update with your vehicle registration number (e.g., "ABC123")
 
 # GPS Configuration
 GPS_UART_NUM = 2  # UART2 on ESP32

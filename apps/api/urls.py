@@ -8,6 +8,12 @@ from .views import (
     RouteViewSet, RoutePointViewSet, TripViewSet
 )
 
+# Register the custom create view BEFORE the router to avoid conflicts
+urlpatterns = [
+    # Simple endpoint for IoT devices (ESP32)
+    path('locations/create/', LocationCreateView.as_view(), name='location-create'),
+]
+
 router = DefaultRouter()
 router.register(r'vehicles', VehicleViewSet, basename='vehicle')
 router.register(r'locations', LocationViewSet, basename='location')
@@ -15,9 +21,7 @@ router.register(r'routes', RouteViewSet, basename='route')
 router.register(r'route-points', RoutePointViewSet, basename='routepoint')
 router.register(r'trips', TripViewSet, basename='trip')
 
-urlpatterns = [
+urlpatterns += [
     path('', include(router.urls)),
-    # Simple endpoint for IoT devices (ESP32)
-    path('locations/create/', LocationCreateView.as_view(), name='location-create'),
 ]
 

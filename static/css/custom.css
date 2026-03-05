@@ -1,5 +1,83 @@
 /* Custom styles for ZUPCO Dashboard */
 
+/* Global Max-Width Container */
+main, .main-container {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Professional Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+table thead {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+table thead th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-right: 1px solid var(--border-color);
+}
+
+table thead th:last-child {
+    border-right: none;
+}
+
+table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+table tbody td:last-child {
+    border-right: none;
+}
+
+table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Professional Container */
+.container {
+    max-width: 1400px !important;
+    width: 100% !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Full width layout */
+.dashboard-container,
+.page-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
 /* Vehicle marker animation */
 .vehicle-marker {
     transition: transform 0.2s ease;
@@ -31,7 +109,7 @@
 }
 
 #vehicles-container::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: var(--bg-secondary);
     border-radius: 3px;
 }
 
@@ -58,22 +136,23 @@
     animation: shimmer 2s infinite;
     background: linear-gradient(
         to right,
-        #1e293b 0%,
-        #334155 50%,
-        #1e293b 100%
+        var(--bg-secondary) 0%,
+        var(--bg-tertiary) 50%,
+        var(--bg-secondary) 100%
     );
     background-size: 1000px 100%;
 }
 
 /* Map popup styling */
 .leaflet-popup-content-wrapper {
-    background: #1e293b;
-    color: #f1f5f9;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
 }
 
 .leaflet-popup-tip {
-    background: #1e293b;
+    background: var(--bg-primary);
 }
 
 /* Status badge pulse */
@@ -89,6 +168,75 @@
     50% {
         opacity: 0.8;
         transform: scale(1.1);
+    }
+}
+
+/* Mobile-optimized button and touch targets */
+@media (max-width: 640px) {
+    button, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Improved tap targets */
+    .dashboard-quick-link {
+        touch-action: manipulation;
+    }
+    
+    /* Reduce shadow on mobile for better performance */
+    .dashboard-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Optimize grid gaps for mobile */
+    [class*="gap-"] {
+        gap: 0.75rem;
+    }
+    
+    table {
+        font-size: 0.875rem;
+    }
+    
+    table thead th,
+    table tbody td {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Smooth transitions for interactive elements */
+button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline-offset: 2px;
+}
+
+button:focus-visible, a:focus-visible {
+    outline: 2px solid #f97316;
+}
+
+/* Improved readability on small screens */
+@media (max-width: 480px) {
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    
+    p {
+        line-height: 1.5;
+    }
+}
+
+/* Card hover effect optimization */
+@media (hover: hover) {
+    .dashboard-card:hover,
+    .dashboard-quick-link:hover {
+        transform: translateY(-4px);
+    }
+}
+
+@media (hover: none) {
+    .dashboard-card:active,
+    .dashboard-quick-link:active {
+        transform: scale(0.98);
     }
 }
 

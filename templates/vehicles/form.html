@@ -41,16 +41,16 @@
                 {% endfor %}
             </div>
 
-            <div class="flex items-center space-x-4 pt-6 border-t theme-border">
-                <button type="submit" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
+            <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t theme-border">
+                <button type="submit" class="flex-1 sm:flex-none px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition min-h-[44px]">
                     {{ action|default:"Save" }}
                 </button>
                 {% if vehicle %}
-                <a href="{% url 'vehicles:detail' vehicle.pk %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                <a href="{% url 'vehicles:detail' vehicle.pk %}" class="flex-1 sm:flex-none px-6 py-3 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition text-center min-h-[44px]">
                     Cancel
                 </a>
                 {% else %}
-                <a href="{% url 'vehicles:list' %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                <a href="{% url 'vehicles:list' %}" class="flex-1 sm:flex-none px-6 py-3 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition text-center min-h-[44px]">
                     Cancel
                 </a>
                 {% endif %}
@@ -60,14 +60,15 @@
 </div>
 
 <style>
-    .form-input, .form-select, .form-textarea {
+        .form-input, .form-select, .form-textarea {
         width: 100%;
         padding: 0.75rem;
         background: var(--bg-tertiary);
         border: 1px solid var(--border-color);
         border-radius: 0.5rem;
         color: var(--text-primary);
-        font-size: 0.875rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+        min-height: 44px; /* Touch-friendly */
     }
     .form-input:focus, .form-select:focus, .form-textarea:focus {
         outline: none;

@@ -266,7 +266,7 @@
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                         <span style="color: #666;">Status:</span>
                         <span style="font-weight: bold; color: ${vehicle.is_online ? '#10b981' : '#ef4444'};">
-                            ${vehicle.is_online ? '● Online' : '○ Offline'}
+                            ${vehicle.is_online ? 'Online' : 'Offline'}
                         </span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
@@ -413,8 +413,7 @@
                         <div class="text-xs theme-text-secondary mt-1">${vehicle.make} ${vehicle.model}</div>
                         <div class="flex items-center mt-2 space-x-3 text-xs">
                             <span class="flex items-center">
-                                <span style="color: ${statusColor};" class="mr-1">●</span>
-                                <span class="theme-text-secondary">${statusText}</span>
+                                <span style="color: ${statusColor};" class="mr-1 font-bold">${statusText}</span>
                             </span>
                             ${hasLocation ? `<span class="theme-text-secondary">${speed} km/h</span>` : ''}
                         </div>

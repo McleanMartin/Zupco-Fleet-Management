@@ -50,9 +50,9 @@
                     <span class="theme-text-secondary">Status:</span>
                     <span class="theme-text-primary font-medium">
                         {% if is_online %}
-                        <span class="text-green-400">● Online</span>
+                        <span class="text-green-400">Online</span>
                         {% else %}
-                        <span class="text-gray-400">○ Offline</span>
+                        <span class="text-gray-400">Offline</span>
                         {% endif %}
                     </span>
                 </div>
@@ -135,9 +135,9 @@
                     </td>
                     <td class="py-3 px-4 text-center">
                         {% if location.ignition %}
-                        <span class="text-green-400">●</span>
+                        <span class="text-green-400">ON</span>
                         {% else %}
-                        <span class="text-gray-400">○</span>
+                        <span class="text-gray-400">OFF</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -190,7 +190,7 @@
             L.marker([start[0], start[1]]).addTo(map)
                 .bindPopup('Start: {{ locations.0.timestamp|date:"H:i:s" }}');
             L.marker([end[0], end[1]]).addTo(map)
-                .bindPopup('End: {{ locations|last.timestamp|date:"H:i:s" }}');
+                .bindPopup('End: {% with last_loc=locations|last %}{{ last_loc.timestamp|date:"H:i:s" }}{% endwith %}');
         }
 
         // Fit bounds to show entire route

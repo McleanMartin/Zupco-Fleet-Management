@@ -106,6 +106,20 @@ See `esp32/README.md` for complete hardware setup, wiring diagrams, and troubles
 
 ### cURL Example
 
+**Using vehicle registration (preferred):**
+```bash
+curl -X POST http://localhost:8000/api/locations/create/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "registration": "ABC123",
+    "latitude": -17.8292,
+    "longitude": 31.0522,
+    "speed": 45.5,
+    "ignition": true
+  }'
+```
+
+**Using vehicle ID (backward compatibility):**
 ```bash
 curl -X POST http://localhost:8000/api/locations/create/ \
   -H "Content-Type: application/json" \

@@ -33,7 +33,7 @@ WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
 
 # API Configuration
 API_URL = "http://192.168.1.100:8000/api/locations/create/"  # Update with your server IP
-VEHICLE_ID = 1  # Update with your vehicle ID from Django admin
+VEHICLE_REGISTRATION = "ABC123"  # Update with your vehicle registration number (e.g., "ABC123")
 
 # GPS Configuration
 GPS_UART_NUM = 2  # UART2 on ESP32
@@ -259,15 +259,16 @@ def read_battery_voltage():
 # API COMMUNICATION
 # ============================================================================
 
-def send_location_to_api(vehicle_id, latitude, longitude, speed, heading=None, 
+def send_location_to_api(registration, latitude, longitude, speed, heading=None, 
                          ignition=True, battery=None):
     """
     Send location data to Django API.
+    Uses vehicle registration number (preferred) for identification.
     
     Returns: True if successful, False otherwise
     """
     data = {
-        'vehicle': vehicle_id,
+        'registration': registration,
         'latitude': float(latitude),
         'longitude': float(longitude),
         'speed': float(speed),
@@ -339,7 +340,7 @@ def main():
     send_success_count = 0
     send_fail_count = 0
     
-    print(f"Vehicle ID: {VEHICLE_ID}")
+    print(f"Vehicle Registration: {VEHICLE_REGISTRATION}")
     print(f"Update interval: {UPDATE_INTERVAL} seconds")
     print("Waiting for GPS fix...")
     print("=" * 50)
@@ -372,7 +373,7 @@ def main():
                     
                     # Send to API
                     success = send_location_to_api(
-                        vehicle_id=VEHICLE_ID,
+                        registration=VEHICLE_REGISTRATION,
                         latitude=gps_data['latitude'],
                         longitude=gps_data['longitude'],
                         speed=gps_data['speed'],

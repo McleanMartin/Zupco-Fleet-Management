@@ -348,7 +348,7 @@
                     <div class="text-xs space-y-1">
                         <div><strong>Speed:</strong> ${speed.toFixed(1)} km/h</div>
                         ${heading !== null && heading !== undefined ? `<div><strong>Heading:</strong> ${heading.toFixed(0)}°</div>` : ''}
-                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">● Online</span>' : '<span class="text-red-600">○ Offline</span>'}</div>
+                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">Online</span>' : '<span class="text-red-600">Offline</span>'}</div>
                         <div class="text-gray-500 mt-2">Updated: ${new Date(timestamp).toLocaleTimeString()}</div>
                     </div>
                 </div>
@@ -386,7 +386,7 @@
                     <div class="text-xs space-y-1">
                         <div><strong>Speed:</strong> ${speed.toFixed(1)} km/h</div>
                         ${heading !== null && heading !== undefined ? `<div><strong>Heading:</strong> ${heading.toFixed(0)}°</div>` : ''}
-                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">● Online</span>' : '<span class="text-red-600">○ Offline</span>'}</div>
+                        <div><strong>Status:</strong> ${vehicle.is_online ? '<span class="text-green-600">Online</span>' : '<span class="text-red-600">Offline</span>'}</div>
                         <div class="text-gray-500 mt-2">Updated: ${new Date(timestamp).toLocaleTimeString()}</div>
                     </div>
                 </div>

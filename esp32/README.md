@@ -53,11 +53,12 @@ If you want to monitor battery voltage:
    ```
    Replace `192.168.1.100` with your Django server's IP address.
 
-3. **Vehicle ID**
+3. **Vehicle Registration**
    ```python
-   VEHICLE_ID = 1
+   VEHICLE_REGISTRATION = "ABC123"
    ```
-   This should match the vehicle ID in your Django admin.
+   This should match the vehicle registration number in your Django admin (e.g., "ABC123", "ZWE-1234", etc.).
+   This is the **preferred method** for identifying vehicles instead of using numeric IDs.
 
 4. **Update Interval**
    ```python
@@ -186,7 +187,7 @@ curl http://localhost:8000/api/locations/recent/
 - **Solutions**:
   - Verify API_URL is correct (include `http://` and port)
   - Check Django server is running
-  - Verify VEHICLE_ID exists in database
+  - Verify VEHICLE_REGISTRATION exists in database (must match exactly)
   - Check firewall settings
   - Test API with curl or Postman
 

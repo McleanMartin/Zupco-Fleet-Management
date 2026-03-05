@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Navigation Test - ZUPCO Fleet Management</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Theme Variables */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f6f6;
+            --bg-tertiary: #e5e5e5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-tertiary: #6a6a6a;
+            --border-color: #e5e5e5;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-tertiary: #808080;
+            --border-color: #3d3d3d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+        
+        .theme-bg-primary { background-color: var(--bg-primary); }
+        .theme-bg-secondary { background-color: var(--bg-secondary); }
+        .theme-text-primary { color: var(--text-primary); }
+        .theme-text-secondary { color: var(--text-secondary); }
+        .theme-border { border-color: var(--border-color); }
+        
+        /* Mobile Navigation Styles */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            max-width: 320px;
+            height: 100vh;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+        
+        .mobile-menu.active {
+            transform: translateX(100%);
+        }
+        
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-nav-item:hover {
+            background-color: var(--bg-secondary);
+            color: #f97316;
+        }
+        
+        .mobile-nav-item.active {
+            background-color: var(--bg-secondary);
+            color: #f97316;
+            border-left: 4px solid #f97316;
+        }
+        
+        @media (min-width: 768px) {
+            .mobile-only { display: none !important; }
+            .desktop-only { display: block !important; }
+        }
+        
+        @media (max-width: 767px) {
+            .mobile-only { display: block !important; }
+            .desktop-only { display: none !important; }
+        }
+    </style>
+</head>
+<body class="theme-bg-primary theme-text-primary min-h-screen">
+    <!-- Navigation -->
+    <nav class="theme-bg-secondary border-b theme-border sticky top-0 z-50">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button class="mobile-menu-toggle mobile-only p-2 rounded-md theme-text-secondary hover:text-orange-400 transition mr-3" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl font-bold text-orange-500">ZUPCO</span>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="desktop-only hidden md:block ml-10">
+                        <div class="flex items-baseline space-x-1">
+                            <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-orange-500">Dashboard</a>
+                            <a href="#" class="px-3 py-2 rounded-md text-sm font-medium theme-text-secondary hover:text-orange-400">Vehicles</a>
+                            <a href="#" class="px-3 py-2 rounded-md text-sm font-medium theme-text-secondary hover:text-orange-400">Tracking</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="mobile-menu">
+        <div class="p-4 border-b theme-border">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-lg font-semibold text-orange-500">ZUPCO Menu</span>
+                </div>
+                <button onclick="toggleMobileMenu()" class="p-2 rounded-md theme-text-secondary hover:text-orange-400 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="#" class="mobile-nav-item active">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Dashboard
+            </a>
+            <a href="#" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                Vehicles
+            </a>
+            <a href="#" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Tracking
+            </a>
+        </nav>
+    </div>
+    
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Main Content -->
+    <main class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold theme-text-primary mb-4">Mobile Navigation Test</h1>
+            <p class="theme-text-secondary mb-8">Test the mobile navigation functionality</p>
+            
+            <div class="theme-card p-6 max-w-md mx-auto">
+                <h2 class="text-xl font-semibold theme-text-primary mb-4">Instructions</h2>
+                <ul class="text-left theme-text-secondary space-y-2">
+                    <li>✅ On mobile (width &lt; 768px): Hamburger menu should appear</li>
+                    <li>✅ On desktop (width ≥ 768px): Regular navigation should appear</li>
+                    <li>✅ Click hamburger to open mobile menu</li>
+                    <li>✅ Click overlay or X to close menu</li>
+                    <li>✅ Press Escape key to close menu</li>
+                    <li>✅ Menu items should be clickable</li>
+                </ul>
+                
+                <div class="mt-6 p-4 theme-bg-secondary rounded-lg">
+                    <p class="text-sm theme-text-secondary">
+                        <strong>Screen Width:</strong> <span id="screen-width"></span>px<br>
+                        <strong>Mobile Menu:</strong> <span id="menu-status">Closed</span>
+                    </p>
+                </div>
+                
+                <button onclick="testMobileMenu()" class="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
+                    Test Mobile Menu
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            
+            if (!menu || !overlay) {
+                console.error('Mobile menu elements not found');
+                return;
+            }
+            
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            // Update status
+            const status = menu.classList.contains('active') ? 'Open' : 'Closed';
+            document.getElementById('menu-status').textContent = status;
+            
+            console.log('Mobile menu', status.toLowerCase());
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const hamburgerButton = document.querySelector('.mobile-menu-toggle');
+            
+            if (menu && menu.classList.contains('active')) {
+                if (!menu.contains(event.target) && 
+                    !overlay.contains(event.target) && 
+                    !hamburgerButton?.contains(event.target)) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const menu = document.getElementById('mobile-menu');
+                if (menu && menu.classList.contains('active')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+        
+        // Test function
+        window.testMobileMenu = function() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            console.log('Mobile Menu Test Results:');
+            console.log('✅ Menu element:', menu ? 'Found' : 'Not found');
+            console.log('✅ Overlay element:', overlay ? 'Found' : 'Not found');
+            console.log('✅ Toggle button:', toggle ? 'Found' : 'Not found');
+            console.log('✅ Screen width:', window.innerWidth + 'px');
+            console.log('✅ Mobile menu visible:', window.innerWidth < 768 ? 'Yes' : 'No');
+            
+            if (menu && overlay && toggle) {
+                alert('✅ All mobile menu elements found! Test passed.');
+                return true;
+            } else {
+                alert('❌ Some mobile menu elements missing! Test failed.');
+                return false;
+            }
+        };
+        
+        // Update screen width display
+        function updateScreenWidth() {
+            document.getElementById('screen-width').textContent = window.innerWidth;
+        }
+        
+        window.addEventListener('resize', updateScreenWidth);
+        updateScreenWidth();
+        
+        // Auto-test on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                console.log('Mobile menu auto-test:');
+                window.testMobileMenu();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

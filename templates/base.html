@@ -124,15 +124,24 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/custom.css">
     <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/mobile.css">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="theme-bg-primary theme-text-primary min-h-screen">
     <!-- Navigation -->
     <nav class="theme-bg-secondary border-b theme-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-90">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
+                    <!-- Mobile menu button -->
+                    <button class="mobile-menu-toggle mobile-only p-2 rounded-md theme-text-secondary hover:text-orange-400 hover:bg-orange-500/10 transition-all duration-200 mr-3" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                        <svg class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="hamburger-line" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path class="close-x hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    
                     <div class="flex-shrink-0">
                         <a href="{% if user.is_authenticated %}{% url 'dashboard:index' %}{% else %}{% url 'core:landing' %}{% endif %}" class="text-2xl font-bold text-orange-500 hover:text-orange-400 transition">
                             ZUPCO
@@ -228,12 +237,112 @@
         </div>
     </nav>
 
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="mobile-menu">
+            <div class="p-4 border-b theme-border">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-lg font-semibold text-orange-500">ZUPCO Menu</span>
+                    </div>
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-md theme-text-secondary hover:text-orange-400 hover:bg-orange-500/10 transition-all duration-200" aria-label="Close menu">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        
+        {% if user.is_authenticated %}
+        <nav class="mobile-nav">
+            <a href="{% url 'dashboard:index' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Analytics
+            </a>
+            <a href="{% url 'tracking:map' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'tracking' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Tracking
+            </a>
+            <a href="{% url 'vehicles:list' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'vehicles' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                </svg>
+                Vehicles
+            </a>
+            <a href="{% url 'routes:list' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'routes' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                Routes
+            </a>
+            <a href="{% url 'trips:list' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'trips' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Trips
+            </a>
+            <a href="{% url 'fuel:list' %}" class="mobile-nav-item {% if request.resolver_match.namespace == 'fuel' %}active{% endif %}">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Fuel
+            </a>
+            <a href="{% url 'tracking:locations' %}" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Location History
+            </a>
+            {% if user.is_staff %}
+            <a href="{% url 'core:user_list' %}" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                User Management
+            </a>
+            {% endif %}
+            <a href="/api/" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                API Documentation
+            </a>
+        </nav>
+        {% else %}
+        <nav class="mobile-nav">
+            <a href="{% url 'core:landing' %}" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Home
+            </a>
+            <a href="{% url 'core:login' %}" class="mobile-nav-item">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                Login
+            </a>
+        </nav>
+        {% endif %}
+    </div>
+    
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+
     <!-- Main Content -->
     {% block fullpage %}
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {% if messages %}
             {% for message in messages %}
-            <div class="mb-4 p-4 rounded-lg border {% if message.tags == 'error' %}bg-red-500/10 border-red-500/50 text-red-400{% elif message.tags == 'success' %}bg-green-500/10 border-green-500/50 text-green-400{% else %}theme-bg-secondary theme-border{% endif %}">
+            <div class="mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg border {% if message.tags == 'error' %}bg-red-500/10 border-red-500/50 text-red-400{% elif message.tags == 'success' %}bg-green-500/10 border-green-500/50 text-green-400{% else %}theme-bg-secondary theme-border{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -245,6 +354,138 @@
 
     <!-- Theme Management -->
     <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const hamburgerButton = document.querySelector('.mobile-menu-toggle');
+            
+            console.log('Toggle mobile menu called');
+            console.log('Menu:', menu);
+            console.log('Overlay:', overlay);
+            
+            if (!menu || !overlay) {
+                console.error('Mobile menu elements not found');
+                return;
+            }
+            
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            // Update hamburger button state
+            if (hamburgerButton) {
+                hamburgerButton.classList.toggle('active');
+            }
+            
+            // Prevent body scroll when menu is open
+            if (menu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+            } else {
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+            }
+            
+            console.log('Menu active:', menu.classList.contains('active'));
+        }
+        
+        // Close mobile menu when clicking outside
+        function closeMobileMenuOnClickOutside(event) {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const hamburgerButton = document.querySelector('.mobile-menu-toggle');
+            
+            if (menu && menu.classList.contains('active')) {
+                if (!menu.contains(event.target) && 
+                    !overlay.contains(event.target) && 
+                    !hamburgerButton?.contains(event.target)) {
+                    console.log('Closing menu due to outside click');
+                    toggleMobileMenu();
+                }
+            }
+        }
+        
+        document.addEventListener('click', closeMobileMenuOnClickOutside);
+        
+        // Close mobile menu when pressing Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const menu = document.getElementById('mobile-menu');
+                if (menu && menu.classList.contains('active')) {
+                    console.log('Closing menu due to Escape key');
+                    toggleMobileMenu();
+                }
+            }
+        });
+        
+        // Close mobile menu on window resize (if switching to desktop)
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                const menu = document.getElementById('mobile-menu');
+                if (window.innerWidth >= 768 && menu && menu.classList.contains('active')) {
+                    console.log('Closing menu due to resize to desktop');
+                    toggleMobileMenu();
+                }
+            }, 250);
+        });
+        
+        // Close mobile menu when navigating to a new page
+        document.querySelectorAll('.mobile-nav-item').forEach(function(link) {
+            link.addEventListener('click', function() {
+                const menu = document.getElementById('mobile-menu');
+                if (menu && menu.classList.contains('active')) {
+                    setTimeout(toggleMobileMenu, 100); // Small delay to allow navigation to start
+                }
+            });
+        });
+        
+        // Debug function to test mobile menu
+        window.testMobileMenu = function() {
+            console.log('Testing mobile menu...');
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            console.log('Menu element:', menu);
+            console.log('Overlay element:', overlay);
+            console.log('Toggle button:', toggle);
+            console.log('Menu classes:', menu ? menu.className : 'not found');
+            console.log('Overlay classes:', overlay ? overlay.className : 'not found');
+            console.log('Screen width:', window.innerWidth);
+            
+            if (menu && overlay && toggle) {
+                console.log('✅ All mobile menu elements found');
+                return true;
+            } else {
+                console.log('❌ Some mobile menu elements missing');
+                return false;
+            }
+        };
+        
+        // Auto-test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                console.log('Mobile menu auto-test:');
+                window.testMobileMenu();
+                
+                // Initialize mobile menu state
+                const menu = document.getElementById('mobile-menu');
+                if (menu && menu.classList.contains('active')) {
+                    // Force close if somehow left open
+                    menu.classList.remove('active');
+                    const overlay = document.getElementById('mobile-menu-overlay');
+                    if (overlay) overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.width = '';
+                }
+            }, 500);
+        });
+        
         // Theme management
         function getTheme() {
             return localStorage.getItem('theme') || 'light';

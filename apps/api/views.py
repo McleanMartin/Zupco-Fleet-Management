@@ -39,16 +39,21 @@ class LocationViewSet(viewsets.ModelViewSet):
     serializer_class = LocationSerializer
     
     def get_queryset(self):
-        """Filter locations by vehicle if provided."""
+        """Filter locations by vehicle registration or ID if provided."""
         queryset = super().get_queryset()
-        vehicle_id = self.request.query_params.get('vehicle', None)
-        hours = int(self.request.query_params.get('hours', 24))
         
+        # Support filtering by registration (preferred) or vehicle ID (backward compatibility)
+        registration = self.request.query_params.get('registration', None)
+        vehicle_id = self.request.query_params.get('vehicle', None)
+        
+        if registration:
+            queryset = queryset.filter(vehicle__registration=registration)
+        elif vehicle_id:
+            queryset = queryset.filter(vehicle_id=vehicle_id)
+        
+        hours = int(self.request.query_params.get('hours', 24))
         since = timezone.now() - timedelta(hours=hours)
         queryset = queryset.filter(timestamp__gte=since)
-        
-        if vehicle_id:
-            queryset = queryset.filter(vehicle_id=vehicle_id)
         
         return queryset.order_by('-timestamp')
     
@@ -122,15 +127,18 @@ class TripViewSet(viewsets.ModelViewSet):
     serializer_class = TripSerializer
     
     def get_queryset(self):
-        """Filter trips by status, vehicle, or route."""
+        """Filter trips by status, vehicle registration/ID, or route."""
         queryset = super().get_queryset()
         status_filter = self.request.query_params.get('status', None)
+        registration = self.request.query_params.get('registration', None)
         vehicle_id = self.request.query_params.get('vehicle', None)
         route_id = self.request.query_params.get('route', None)
         
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        if vehicle_id:
+        if registration:
+            queryset = queryset.filter(vehicle__registration=registration)
+        elif vehicle_id:
             queryset = queryset.filter(vehicle_id=vehicle_id)
         if route_id:
             queryset = queryset.filter(route_id=route_id)

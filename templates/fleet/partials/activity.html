@@ -10,8 +10,8 @@
                     <span class="text-xs theme-text-secondary">{{ location.timestamp|timesince }} ago</span>
                 </div>
                 <div class="flex items-center space-x-4 text-xs theme-text-secondary">
-                    <span>📍 {{ location.latitude|floatformat:4 }}, {{ location.longitude|floatformat:4 }}</span>
-                    <span class="text-orange-500">{{ location.speed|floatformat:0 }} km/h</span>
+                    <span>Lat: {{ location.latitude|floatformat:4 }}, Lon: {{ location.longitude|floatformat:4 }}</span>
+                    <span class="text-orange-500">Speed: {{ location.speed|floatformat:0 }} km/h</span>
                 </div>
             </div>
             <div class="ml-2">

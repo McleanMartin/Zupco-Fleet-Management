@@ -1,44 +1,44 @@
-<div class="space-y-3">
+<div class="space-y-2 sm:space-y-3">
     <!-- Database Status -->
-    <div class="flex items-center justify-between p-3 theme-bg-tertiary rounded-lg border theme-border">
-        <div class="flex items-center space-x-3">
-            <div class="w-2 h-2 rounded-full {% if db_status == 'operational' %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
-            <span class="text-sm theme-text-primary">Database</span>
+    <div class="flex items-center justify-between p-2 sm:p-3 theme-bg-tertiary rounded-lg border theme-border hover:border-green-400/50 transition">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 {% if db_status == 'operational' %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+            <span class="text-xs sm:text-sm theme-text-primary truncate">Database</span>
         </div>
-        <span class="text-xs font-medium {% if db_status == 'operational' %}text-green-400{% else %}text-red-400{% endif %}">
+        <span class="text-xs font-medium flex-shrink-0 ml-2 {% if db_status == 'operational' %}text-green-400{% else %}text-red-400{% endif %}">
             {{ db_status_text }}
         </span>
     </div>
     
     <!-- API Status -->
-    <div class="flex items-center justify-between p-3 theme-bg-tertiary rounded-lg border theme-border">
-        <div class="flex items-center space-x-3">
-            <div class="w-2 h-2 rounded-full {% if api_status == 'operational' %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
-            <span class="text-sm theme-text-primary">API</span>
+    <div class="flex items-center justify-between p-2 sm:p-3 theme-bg-tertiary rounded-lg border theme-border hover:border-green-400/50 transition">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 {% if api_status == 'operational' %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+            <span class="text-xs sm:text-sm theme-text-primary truncate">API</span>
         </div>
-        <span class="text-xs font-medium {% if api_status == 'operational' %}text-green-400{% else %}text-red-400{% endif %}">
+        <span class="text-xs font-medium flex-shrink-0 ml-2 {% if api_status == 'operational' %}text-green-400{% else %}text-red-400{% endif %}">
             {{ api_status_text }}
         </span>
     </div>
     
     <!-- Data Activity -->
-    <div class="flex items-center justify-between p-3 theme-bg-tertiary rounded-lg border theme-border">
-        <div class="flex items-center space-x-3">
-            <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-            <span class="text-sm theme-text-primary">Last Hour</span>
+    <div class="flex items-center justify-between p-2 sm:p-3 theme-bg-tertiary rounded-lg border theme-border hover:border-orange-400/50 transition">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 bg-orange-500"></div>
+            <span class="text-xs sm:text-sm theme-text-primary truncate">Last Hour</span>
         </div>
-        <span class="text-xs font-medium text-orange-400">
-            {{ recent_locations_count }} location{{ recent_locations_count|pluralize }}
+        <span class="text-xs font-medium flex-shrink-0 ml-2 text-orange-400">
+            {{ recent_locations_count }} loc{{ recent_locations_count|pluralize:"s" }}
         </span>
     </div>
     
     <!-- System Uptime -->
-    <div class="flex items-center justify-between p-3 theme-bg-tertiary rounded-lg border theme-border">
-        <div class="flex items-center space-x-3">
-            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span class="text-sm theme-text-primary">System</span>
+    <div class="flex items-center justify-between p-2 sm:p-3 theme-bg-tertiary rounded-lg border theme-border hover:border-blue-400/50 transition">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div class="w-2 h-2 rounded-full flex-shrink-0 bg-blue-500"></div>
+            <span class="text-xs sm:text-sm theme-text-primary truncate">System</span>
         </div>
-        <span class="text-xs font-medium text-blue-400">
+        <span class="text-xs font-medium flex-shrink-0 ml-2 text-blue-400">
             Operational
         </span>
     </div>

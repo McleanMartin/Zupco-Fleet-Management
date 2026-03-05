@@ -5,10 +5,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from apps.fleet.models import Vehicle, Location
+from itertools import groupby
+from operator import itemgetter
 
 
 @login_required
@@ -24,22 +26,44 @@ def tracking_map(request):
 
 @login_required
 def location_list(request):
-    """List all location records with filtering."""
+    """List all location records with filtering and grouping by date."""
     locations = Location.objects.select_related('vehicle').order_by('-timestamp')
     
-    # Vehicle filter
+    # Vehicle filter - support both registration (preferred) and ID
+    registration = request.GET.get('registration', '')
     vehicle_id = request.GET.get('vehicle', '')
-    if vehicle_id:
+    
+    if registration:
+        locations = locations.filter(vehicle__registration=registration)
+    elif vehicle_id:
         locations = locations.filter(vehicle_id=vehicle_id)
     
-    # Time range filter
-    hours = request.GET.get('hours', '24')
-    try:
-        hours = int(hours)
-        time_threshold = timezone.now() - timedelta(hours=hours)
+    # Date filter
+    date_filter = request.GET.get('date', '')
+    if date_filter:
+        try:
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            filter_start = timezone.make_aware(datetime.combine(filter_date, datetime.min.time()))
+            filter_end = timezone.make_aware(datetime.combine(filter_date, datetime.max.time()))
+            locations = locations.filter(timestamp__gte=filter_start, timestamp__lte=filter_end)
+        except (ValueError, TypeError):
+            date_filter = ''
+    else:
+        # Default to last 24 hours if no date specified
+        time_threshold = timezone.now() - timedelta(hours=24)
         locations = locations.filter(timestamp__gte=time_threshold)
-    except (ValueError, TypeError):
-        pass
+    
+    # Time range filter (only used if no specific date is selected)
+    if not date_filter:
+        hours = request.GET.get('hours', '24')
+        try:
+            hours = int(hours)
+            time_threshold = timezone.now() - timedelta(hours=hours)
+            locations = locations.filter(timestamp__gte=time_threshold)
+        except (ValueError, TypeError):
+            hours = 24
+    else:
+        hours = 24
     
     # Online only filter
     online_only = request.GET.get('online', '')
@@ -50,14 +74,32 @@ def location_list(request):
         ).distinct().values_list('id', flat=True)
         locations = locations.filter(vehicle_id__in=vehicle_ids)
     
+    # Convert to list and group by date
+    locations_list = list(locations[:500])
+    grouped_locations = {}
+    
+    for location in locations_list:
+        location_date = location.timestamp.date()
+        if location_date not in grouped_locations:
+            grouped_locations[location_date] = []
+        grouped_locations[location_date].append(location)
+    
+    # Get available dates for the date picker
+    available_dates = Location.objects.filter(vehicle_id=vehicle_id if vehicle_id else None).values_list('timestamp', flat=True).distinct().order_by('-timestamp')[:100] if vehicle_id or registration else []
+    available_dates = sorted(set([d.date() for d in available_dates]), reverse=True)
+    
     vehicles = Vehicle.objects.filter(status='active').order_by('registration')
     
     context = {
-        'locations': locations[:500],  # Limit to 500 most recent
+        'locations': locations_list,
+        'grouped_locations': dict(sorted(grouped_locations.items(), reverse=True)),
+        'available_dates': available_dates,
         'vehicles': vehicles,
+        'registration_filter': registration,
         'vehicle_filter': vehicle_id,
-        'hours_filter': hours if isinstance(hours, int) else 24,
+        'hours_filter': hours,
         'online_filter': online_only,
+        'date_filter': date_filter,
     }
     return render(request, 'tracking/locations.html', context)
 

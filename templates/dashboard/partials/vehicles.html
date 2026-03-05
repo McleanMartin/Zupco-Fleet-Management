@@ -31,11 +31,11 @@
         {% if vehicle.last_location %}
         <div class="mt-2 pt-2 border-t theme-border">
             <div class="flex items-center justify-between text-xs theme-text-tertiary">
-                <span>📍 {{ vehicle.last_location.latitude|floatformat:4 }}, {{ vehicle.last_location.longitude|floatformat:4 }}</span>
+                <span>Lat: {{ vehicle.last_location.latitude|floatformat:4 }}, Lon: {{ vehicle.last_location.longitude|floatformat:4 }}</span>
                 {% if vehicle.last_location.ignition %}
-                <span class="text-orange-500">● Ignition ON</span>
+                <span class="text-orange-500">Ignition ON</span>
                 {% else %}
-                <span class="theme-text-tertiary">○ Ignition OFF</span>
+                <span class="theme-text-tertiary">Ignition OFF</span>
                 {% endif %}
             </div>
         </div>

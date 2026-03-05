@@ -36,20 +36,44 @@ class VehicleSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     """Serializer for Location model."""
     vehicle_registration = serializers.CharField(source='vehicle.registration', read_only=True)
+    registration = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
     class Meta:
         model = Location
         fields = [
-            'id', 'vehicle', 'vehicle_registration', 'latitude', 'longitude',
+            'id', 'vehicle', 'registration', 'vehicle_registration', 'latitude', 'longitude',
             'speed', 'heading', 'timestamp', 'battery', 'ignition'
         ]
-        read_only_fields = ['id', 'timestamp']
+        read_only_fields = ['id', 'timestamp', 'vehicle_registration']
+        extra_kwargs = {
+            'vehicle': {'required': False, 'allow_null': True}
+        }
     
-    def validate_vehicle(self, value):
-        """Ensure vehicle exists and is active."""
-        if value.status != 'active':
-            raise serializers.ValidationError("Vehicle must be active to receive location data.")
-        return value
+    def validate(self, data):
+        """Resolve registration to vehicle ID if provided."""
+        registration = data.pop('registration', None)
+        
+        # If registration provided, use it to lookup vehicle
+        if registration:
+            try:
+                vehicle = Vehicle.objects.get(registration=registration)
+                # Check if vehicle is active
+                if vehicle.status != 'active':
+                    raise serializers.ValidationError("Vehicle must be active to receive location data.")
+                data['vehicle'] = vehicle
+            except Vehicle.DoesNotExist:
+                raise serializers.ValidationError(f"Vehicle with registration '{registration}' not found.")
+        else:
+            # If vehicle is provided by ID, check its status
+            vehicle = data.get('vehicle')
+            if vehicle and vehicle.status != 'active':
+                raise serializers.ValidationError("Vehicle must be active to receive location data.")
+        
+        # Validate that vehicle is provided (either directly or via registration)
+        if 'vehicle' not in data or data.get('vehicle') is None:
+            raise serializers.ValidationError("Either 'vehicle' ID or 'registration' must be provided.")
+        
+        return data
 
 
 class RouteSerializer(serializers.ModelSerializer):

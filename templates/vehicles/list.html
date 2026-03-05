@@ -19,7 +19,7 @@
 
 <!-- Search and Filters -->
 <div class="mb-6 theme-card p-4">
-    <form method="get" class="flex items-end space-x-4">
+    <form method="get" class="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:space-x-4">
         <div class="flex-1">
             <label for="search" class="block text-sm font-medium theme-text-primary mb-2">Search</label>
             <input 
@@ -31,12 +31,12 @@
                 class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
         </div>
-        <div>
+        <div class="sm:w-48">
             <label for="status" class="block text-sm font-medium theme-text-primary mb-2">Status</label>
             <select 
                 name="status" 
                 id="status"
-                class="px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
+                class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
                 <option value="">All Statuses</option>
                 {% for value, label in status_choices %}
@@ -44,14 +44,16 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
-            Filter
-        </button>
-        {% if search_query or status_filter %}
-        <a href="{% url 'vehicles:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
-            Clear
-        </a>
-        {% endif %}
+        <div class="flex flex-col sm:flex-row gap-2">
+            <button type="submit" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Filter
+            </button>
+            {% if search_query or status_filter %}
+            <a href="{% url 'vehicles:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                Clear
+            </a>
+            {% endif %}
+        </div>
     </form>
 </div>
 
@@ -67,11 +69,11 @@
                 <div class="flex items-center space-x-2">
                     {% if vehicle.is_online %}
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                        ● Online
+                        Online
                     </span>
                     {% else %}
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium theme-bg-tertiary theme-text-tertiary">
-                        ○ Offline
+                        Offline
                     </span>
                     {% endif %}
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if vehicle.status == 'active' %}bg-green-500/20 text-green-400{% elif vehicle.status == 'maintenance' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
@@ -104,11 +106,11 @@
             {% endif %}
         </div>
         
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-col sm:flex-row gap-2">
             <a href="{% url 'vehicles:detail' vehicle.pk %}" class="flex-1 px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
                 View Details
             </a>
-            <a href="{% url 'vehicles:edit' vehicle.pk %}" class="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm font-medium transition">
+            <a href="{% url 'vehicles:edit' vehicle.pk %}" class="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm font-medium transition text-center">
                 Edit
             </a>
         </div>
