@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.fuel',
     'apps.tracking',
     'apps.trips',
+    'apps.drivers',
 ]
 
 MIDDLEWARE = [

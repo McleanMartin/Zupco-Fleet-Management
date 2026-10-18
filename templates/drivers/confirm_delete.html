@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Driver - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold theme-text-primary">Delete Driver</h1>
+        <p class="theme-text-secondary mt-2">Confirm deletion of driver</p>
+    </div>
+
+    <div class="theme-card p-6 border-red-500/50">
+        <div class="mb-6">
+            <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
+                <h2 class="text-lg font-semibold text-red-400 mb-2">Warning: This action cannot be undone</h2>
+                <p class="text-sm theme-text-secondary">
+                    You are about to permanently delete <strong class="theme-text-primary">{{ driver.full_name }}</strong>.
+                    {% if driver.user %}Their login account "{{ driver.user.username }}" will be deactivated.{% endif %}
+                </p>
+            </div>
+
+            <div class="theme-bg-tertiary rounded-lg p-4 border theme-border">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="theme-text-secondary">Employee #:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ driver.employee_number }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Licence:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ driver.license_number }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Vehicle:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ driver.assigned_vehicle.registration|default:"Unassigned" }}</span>
+                    </div>
+                    <div>
+                        <span class="theme-text-secondary">Status:</span>
+                        <span class="theme-text-primary font-medium ml-2">{{ driver.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t theme-border">
+                <button type="submit" class="flex-1 sm:flex-none px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition min-h-[44px]">
+                    Delete Driver
+                </button>
+                <a href="{% url 'drivers:list' %}" class="flex-1 sm:flex-none px-6 py-3 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition text-center min-h-[44px]">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

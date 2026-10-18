@@ -2,7 +2,7 @@
 Views for vehicle management.
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
@@ -13,6 +13,7 @@ from apps.fleet.forms import VehicleForm
 
 
 @login_required
+@permission_required('fleet.view_vehicle', raise_exception=True)
 def vehicle_list(request):
     """List all vehicles with filtering and search."""
     vehicles = Vehicle.objects.all().order_by('registration')
@@ -50,6 +51,7 @@ def vehicle_list(request):
 
 
 @login_required
+@permission_required('fleet.view_vehicle', raise_exception=True)
 def vehicle_detail(request, pk):
     """View detailed information about a specific vehicle."""
     vehicle = get_object_or_404(Vehicle, pk=pk)
@@ -80,6 +82,7 @@ def vehicle_detail(request, pk):
 
 
 @login_required
+@permission_required('fleet.add_vehicle', raise_exception=True)
 def vehicle_create(request):
     """Create a new vehicle."""
     if request.method == 'POST':
@@ -100,6 +103,7 @@ def vehicle_create(request):
 
 
 @login_required
+@permission_required('fleet.change_vehicle', raise_exception=True)
 def vehicle_edit(request, pk):
     """Edit an existing vehicle."""
     vehicle = get_object_or_404(Vehicle, pk=pk)
@@ -123,6 +127,7 @@ def vehicle_edit(request, pk):
 
 
 @login_required
+@permission_required('fleet.delete_vehicle', raise_exception=True)
 def vehicle_delete(request, pk):
     """Delete a vehicle."""
     vehicle = get_object_or_404(Vehicle, pk=pk)
@@ -140,6 +145,7 @@ def vehicle_delete(request, pk):
 
 
 @login_required
+@permission_required('fleet.view_vehicle', raise_exception=True)
 def vehicle_json(request):
     """Return vehicles as JSON for map updates."""
     vehicles_list = Vehicle.objects.filter(status='active')

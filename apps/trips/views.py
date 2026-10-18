@@ -2,7 +2,7 @@
 Views for trip management.
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -11,6 +11,7 @@ from apps.fleet.forms import TripForm
 
 
 @login_required
+@permission_required('fleet.view_trip', raise_exception=True)
 def trip_list(request):
     """List all trips with filtering."""
     trips = Trip.objects.select_related('vehicle', 'route').order_by('-scheduled_start')
@@ -56,6 +57,7 @@ def trip_list(request):
 
 
 @login_required
+@permission_required('fleet.view_trip', raise_exception=True)
 def trip_detail(request, pk):
     """View detailed information about a specific trip."""
     trip = get_object_or_404(Trip.objects.select_related('vehicle', 'route'), pk=pk)
@@ -86,6 +88,7 @@ def trip_detail(request, pk):
 
 
 @login_required
+@permission_required('fleet.add_trip', raise_exception=True)
 def trip_create(request):
     """Create a new trip."""
     if request.method == 'POST':
@@ -106,6 +109,7 @@ def trip_create(request):
 
 
 @login_required
+@permission_required('fleet.change_trip', raise_exception=True)
 def trip_edit(request, pk):
     """Edit an existing trip."""
     trip = get_object_or_404(Trip, pk=pk)
@@ -129,6 +133,7 @@ def trip_edit(request, pk):
 
 
 @login_required
+@permission_required('fleet.delete_trip', raise_exception=True)
 def trip_delete(request, pk):
     """Delete a trip."""
     trip = get_object_or_404(Trip, pk=pk)
@@ -145,6 +150,7 @@ def trip_delete(request, pk):
 
 
 @login_required
+@permission_required('fleet.change_trip', raise_exception=True)
 def trip_start(request, pk):
     """Start a trip."""
     trip = get_object_or_404(Trip, pk=pk)
@@ -161,6 +167,7 @@ def trip_start(request, pk):
 
 
 @login_required
+@permission_required('fleet.change_trip', raise_exception=True)
 def trip_complete(request, pk):
     """Complete a trip."""
     trip = get_object_or_404(Trip, pk=pk)
@@ -177,6 +184,7 @@ def trip_complete(request, pk):
 
 
 @login_required
+@permission_required('fleet.change_trip', raise_exception=True)
 def trip_cancel(request, pk):
     """Cancel a trip."""
     trip = get_object_or_404(Trip, pk=pk)

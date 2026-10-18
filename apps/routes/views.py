@@ -2,7 +2,7 @@
 Views for route management.
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Count
 from apps.fleet.models import Route, RoutePoint, Trip
@@ -10,6 +10,7 @@ from apps.fleet.forms import RouteForm, RoutePointForm
 
 
 @login_required
+@permission_required('fleet.view_route', raise_exception=True)
 def route_list(request):
     """List all routes with filtering."""
     routes = Route.objects.all().order_by('code')
@@ -35,6 +36,7 @@ def route_list(request):
 
 
 @login_required
+@permission_required('fleet.view_route', raise_exception=True)
 def route_detail(request, pk):
     """View detailed information about a specific route."""
     route = get_object_or_404(Route, pk=pk)
@@ -50,6 +52,7 @@ def route_detail(request, pk):
 
 
 @login_required
+@permission_required('fleet.add_route', raise_exception=True)
 def route_create(request):
     """Create a new route."""
     if request.method == 'POST':
@@ -70,6 +73,7 @@ def route_create(request):
 
 
 @login_required
+@permission_required('fleet.change_route', raise_exception=True)
 def route_edit(request, pk):
     """Edit an existing route."""
     route = get_object_or_404(Route, pk=pk)
@@ -93,6 +97,7 @@ def route_edit(request, pk):
 
 
 @login_required
+@permission_required('fleet.delete_route', raise_exception=True)
 def route_delete(request, pk):
     """Delete a route."""
     route = get_object_or_404(Route, pk=pk)
@@ -110,6 +115,7 @@ def route_delete(request, pk):
 
 
 @login_required
+@permission_required('fleet.add_routepoint', raise_exception=True)
 def route_point_create(request, route_pk):
     """Add a point to a route."""
     route = get_object_or_404(Route, pk=route_pk)
@@ -135,6 +141,7 @@ def route_point_create(request, route_pk):
 
 
 @login_required
+@permission_required('fleet.change_routepoint', raise_exception=True)
 def route_point_edit(request, route_pk, point_pk):
     """Edit a route point."""
     route = get_object_or_404(Route, pk=route_pk)
@@ -160,6 +167,7 @@ def route_point_edit(request, route_pk, point_pk):
 
 
 @login_required
+@permission_required('fleet.delete_routepoint', raise_exception=True)
 def route_point_delete(request, route_pk, point_pk):
     """Delete a route point."""
     route = get_object_or_404(Route, pk=route_pk)

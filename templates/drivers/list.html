@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Drivers - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold theme-text-primary mb-2">Drivers</h1>
+            <p class="theme-text-secondary">Manage fleet drivers and their vehicle assignments</p>
+        </div>
+        {% if perms.fleet.add_driver %}
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'drivers:create' %}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition">
+                Add Driver
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="mb-6 theme-card p-4">
+    <form method="get" class="space-y-4 sm:space-y-0 sm:flex sm:items-end sm:space-x-4">
+        <div class="flex-1">
+            <label for="search" class="block text-sm font-medium theme-text-primary mb-2">Search</label>
+            <input
+                type="text"
+                name="search"
+                id="search"
+                value="{{ search_query }}"
+                placeholder="Name, employee no., licence or vehicle..."
+                class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+        </div>
+        <div class="sm:w-48">
+            <label for="status" class="block text-sm font-medium theme-text-primary mb-2">Status</label>
+            <select
+                name="status"
+                id="status"
+                class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+                <option value="">All Statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+            <button type="submit" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition">
+                Filter
+            </button>
+            {% if search_query or status_filter %}
+            <a href="{% url 'drivers:list' %}" class="px-4 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg text-sm font-medium transition text-center">
+                Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Drivers List -->
+{% if drivers %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for driver in drivers %}
+    <div class="theme-card theme-card-hover p-6 transition">
+        <div class="mb-4">
+            <h3 class="text-xl font-bold theme-text-primary mb-1">{{ driver.full_name }}</h3>
+            <p class="text-sm theme-text-secondary mb-2">Employee #{{ driver.employee_number }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if driver.status == 'active' %}bg-green-500/20 text-green-400{% elif driver.status == 'on_leave' %}bg-yellow-500/20 text-yellow-400{% elif driver.status == 'suspended' %}bg-red-500/20 text-red-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                    {{ driver.get_status_display }}
+                </span>
+                {% if driver.license_expired %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+                    Licence expired
+                </span>
+                {% endif %}
+                {% if driver.user %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                    Login: {{ driver.user.username }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="space-y-2 mb-4 text-sm theme-text-secondary">
+            <div class="flex justify-between">
+                <span>Vehicle:</span>
+                {% if driver.assigned_vehicle %}
+                <a href="{% url 'vehicles:detail' driver.assigned_vehicle.pk %}" class="font-medium text-orange-500 hover:text-orange-400">{{ driver.assigned_vehicle.registration }}</a>
+                {% else %}
+                <span class="font-medium theme-text-primary">Unassigned</span>
+                {% endif %}
+            </div>
+            <div class="flex justify-between">
+                <span>Licence:</span>
+                <span class="font-medium theme-text-primary">{{ driver.license_number }}{% if driver.license_class %} (Class {{ driver.license_class }}){% endif %}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>Expires:</span>
+                <span class="font-medium {% if driver.license_expired %}text-red-400{% else %}theme-text-primary{% endif %}">{{ driver.license_expiry|date:"M d, Y" }}</span>
+            </div>
+            {% if driver.phone %}
+            <div class="flex justify-between">
+                <span>Phone:</span>
+                <span class="font-medium theme-text-primary">{{ driver.phone }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if perms.fleet.change_driver or perms.fleet.delete_driver %}
+        <div class="flex flex-col sm:flex-row gap-2">
+            {% if perms.fleet.change_driver %}
+            <a href="{% url 'drivers:edit' driver.pk %}" class="flex-1 px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm font-medium transition text-center">
+                Edit
+            </a>
+            {% endif %}
+            {% if perms.fleet.delete_driver %}
+            <a href="{% url 'drivers:delete' driver.pk %}" class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition text-center">
+                Delete
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-12 theme-card">
+    <p class="text-lg theme-text-secondary mb-2">No drivers found</p>
+    {% if perms.fleet.add_driver and not search_query and not status_filter %}
+    <p class="text-sm theme-text-tertiary mb-4">Get started by adding your first driver</p>
+    <a href="{% url 'drivers:create' %}" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
+        Add Driver
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

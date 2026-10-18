@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - ZUPCO Fleet Management{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold theme-text-primary">{{ title }}</h1>
+        <p class="theme-text-secondary mt-2">{% if driver %}Edit driver information{% else %}Add a new driver to the fleet{% endif %}</p>
+    </div>
+
+    <div class="theme-card p-6">
+        {% if form.errors %}
+        <div class="mb-4 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg">
+            <p class="font-semibold mb-2">Please correct the errors below:</p>
+            <ul class="list-disc list-inside text-sm">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{% if field != '__all__' %}{{ field }}: {% endif %}{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for field in form %}
+                {% if field.name == 'username' %}
+                <div class="md:col-span-2 pt-4 border-t theme-border">
+                    <p class="text-sm font-medium theme-text-primary">Login account</p>
+                    <p class="text-xs theme-text-tertiary">
+                        {% if driver.user %}Linked to user "{{ driver.user.username }}".{% else %}Optional. A new account is given the Driver role.{% endif %}
+                    </p>
+                </div>
+                {% endif %}
+                <div class="{% if field.name == 'username' %}md:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium theme-text-primary mb-2">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-red-400">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="mt-1 text-xs theme-text-tertiary">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t theme-border">
+                <button type="submit" class="flex-1 sm:flex-none px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition min-h-[44px]">
+                    {{ action|default:"Save" }}
+                </button>
+                <a href="{% url 'drivers:list' %}" class="flex-1 sm:flex-none px-6 py-3 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition text-center min-h-[44px]">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 16px; /* Prevent zoom on iOS */
+        min-height: 44px; /* Touch-friendly */
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #f97316;
+    }
+</style>
+{% endblock %}

@@ -27,7 +27,7 @@
                     <div>
                         <h3 class="text-lg font-semibold text-red-400 mb-2">Warning: This action cannot be undone</h3>
                         <p class="text-sm text-red-300">
-                            You are about to permanently delete the user account <strong>{{ user.username }}</strong>. 
+                            You are about to permanently delete the user account <strong>{{ target_user.username }}</strong>. 
                             All data associated with this user will be removed.
                         </p>
                     </div>
@@ -39,41 +39,36 @@
                 <dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt class="theme-text-secondary font-medium">Username</dt>
-                        <dd class="theme-text-primary mt-1">{{ user.username }}</dd>
+                        <dd class="theme-text-primary mt-1">{{ target_user.username }}</dd>
                     </div>
                     <div>
                         <dt class="theme-text-secondary font-medium">Email</dt>
-                        <dd class="theme-text-primary mt-1">{{ user.email|default:"—" }}</dd>
+                        <dd class="theme-text-primary mt-1">{{ target_user.email|default:"—" }}</dd>
                     </div>
                     <div>
                         <dt class="theme-text-secondary font-medium">Name</dt>
                         <dd class="theme-text-primary mt-1">
-                            {% if user.first_name or user.last_name %}
-                                {{ user.first_name }} {{ user.last_name }}
+                            {% if target_user.first_name or target_user.last_name %}
+                                {{ target_user.first_name }} {{ target_user.last_name }}
                             {% else %}
                                 —
                             {% endif %}
                         </dd>
                     </div>
                     <div>
-                        <dt class="theme-text-secondary font-medium">Status</dt>
+                        <dt class="theme-text-secondary font-medium">Role</dt>
                         <dd class="theme-text-primary mt-1">
-                            {% if user.is_superuser %}
-                                Superuser
-                            {% elif user.is_staff %}
-                                Staff
-                            {% else %}
-                                User
-                            {% endif %}
+                            {% if target_user.is_superuser %}Superuser{% endif %}
+                            {% for group in target_user.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% if not target_user.is_superuser %}No role{% endif %}{% endfor %}
                         </dd>
                     </div>
                     <div>
                         <dt class="theme-text-secondary font-medium">Date Joined</dt>
-                        <dd class="theme-text-primary mt-1">{{ user.date_joined|date:"M d, Y" }}</dd>
+                        <dd class="theme-text-primary mt-1">{{ target_user.date_joined|date:"M d, Y" }}</dd>
                     </div>
                     <div>
                         <dt class="theme-text-secondary font-medium">Last Login</dt>
-                        <dd class="theme-text-primary mt-1">{{ user.last_login|date:"M d, Y"|default:"Never" }}</dd>
+                        <dd class="theme-text-primary mt-1">{{ target_user.last_login|date:"M d, Y"|default:"Never" }}</dd>
                     </div>
                 </dl>
             </div>

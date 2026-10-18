@@ -2,7 +2,7 @@
 Views for fuel management.
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
@@ -12,6 +12,7 @@ from apps.fleet.forms import FuelRecordForm
 
 
 @login_required
+@permission_required('fleet.view_fuelrecord', raise_exception=True)
 def fuel_list(request):
     """List all fuel records with filtering."""
     fuel_records = FuelRecord.objects.select_related('vehicle').order_by('-date')
@@ -48,6 +49,7 @@ def fuel_list(request):
 
 
 @login_required
+@permission_required('fleet.view_fuelrecord', raise_exception=True)
 def fuel_detail(request, pk):
     """View detailed information about a specific fuel record."""
     fuel_record = get_object_or_404(FuelRecord, pk=pk)
@@ -65,6 +67,7 @@ def fuel_detail(request, pk):
 
 
 @login_required
+@permission_required('fleet.add_fuelrecord', raise_exception=True)
 def fuel_create(request):
     """Create a new fuel record."""
     if request.method == 'POST':
@@ -85,6 +88,7 @@ def fuel_create(request):
 
 
 @login_required
+@permission_required('fleet.change_fuelrecord', raise_exception=True)
 def fuel_edit(request, pk):
     """Edit an existing fuel record."""
     fuel_record = get_object_or_404(FuelRecord, pk=pk)
@@ -108,6 +112,7 @@ def fuel_edit(request, pk):
 
 
 @login_required
+@permission_required('fleet.delete_fuelrecord', raise_exception=True)
 def fuel_delete(request, pk):
     """Delete a fuel record."""
     fuel_record = get_object_or_404(FuelRecord, pk=pk)
@@ -124,6 +129,7 @@ def fuel_delete(request, pk):
 
 
 @login_required
+@permission_required('fleet.view_fuelrecord', raise_exception=True)
 def fuel_stats(request):
     """Display fuel statistics and analytics."""
     # Last 30 days stats

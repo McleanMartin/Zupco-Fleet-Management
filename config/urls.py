@@ -21,6 +21,7 @@ urlpatterns = [
     path('fuel/', include('apps.fuel.urls')),
     path('tracking/', include('apps.tracking.urls')),
     path('trips/', include('apps.trips.urls')),
+    path('drivers/', include('apps.drivers.urls')),
 ]
 
 # Serve static files during development

@@ -1,160 +1,90 @@
 {% extends "base.html" %}
 
-{% block title %}{% if user %}Edit User{% else %}Create User{% endif %} - ZUPCO Fleet Management{% endblock %}
+{% block title %}{% if target_user %}Edit User{% else %}Create User{% endif %} - ZUPCO Fleet Management{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold theme-text-primary">{% if user %}Edit User{% else %}Create User{% endif %}</h1>
-        <p class="theme-text-secondary mt-2">{% if user %}Update user information{% else %}Add a new user to the system{% endif %}</p>
+        <h1 class="text-3xl font-bold theme-text-primary">{% if target_user %}Edit User{% else %}Create User{% endif %}</h1>
+        <p class="theme-text-secondary mt-2">{% if target_user %}Update user information and role{% else %}Add a new user to the system and assign a role{% endif %}</p>
     </div>
 
     <div class="theme-card p-6">
-        {% if messages %}
-            {% for message in messages %}
-            <div class="mb-4 p-4 {% if message.tags == 'error' %}bg-red-500/20 border border-red-500/50 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border border-green-500/50 text-green-400{% else %}theme-bg-secondary theme-border{% endif %} rounded-lg">
-                {{ message }}
-            </div>
-            {% endfor %}
+        {% if form.errors %}
+        <div class="mb-4 p-4 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg">
+            <p class="font-semibold mb-2">Please correct the errors below:</p>
+            <ul class="list-disc list-inside text-sm">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{% if field != '__all__' %}{{ field }}: {% endif %}{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
         {% endif %}
 
         <form method="post" class="space-y-6">
             {% csrf_token %}
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Username -->
-                <div class="md:col-span-2">
-                    <label for="username" class="block text-sm font-medium theme-text-primary mb-2">
-                        Username <span class="text-red-400">*</span>
+                {% for field in form %}
+                {% if field.field.widget.input_type == 'checkbox' %}
+                <div class="md:col-span-2 flex items-center gap-3">
+                    {{ field }}
+                    <label for="{{ field.id_for_label }}" class="text-sm theme-text-primary">
+                        {{ field.label }}
+                        {% if field.help_text %}<span class="block text-xs theme-text-tertiary">{{ field.help_text }}</span>{% endif %}
                     </label>
-                    <input 
-                        type="text" 
-                        name="username" 
-                        id="username"
-                        value="{{ user.username|default:'' }}"
-                        required
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter username"
-                    >
                 </div>
-                
-                <!-- Email -->
-                <div class="md:col-span-2">
-                    <label for="email" class="block text-sm font-medium theme-text-primary mb-2">
-                        Email
+                {% else %}
+                <div class="{% if field.name == 'username' or field.name == 'email' or field.name == 'role' %}md:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium theme-text-primary mb-2">
+                        {{ field.label }}
+                        {% if field.field.required or field.name == 'password' and not target_user %}<span class="text-red-400">*</span>{% endif %}
                     </label>
-                    <input 
-                        type="email" 
-                        name="email" 
-                        id="email"
-                        value="{{ user.email|default:'' }}"
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter email address"
-                    >
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="mt-1 text-xs theme-text-tertiary">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    {% if field.name == 'role' and perms.auth.view_group %}
+                    <p class="mt-1 text-xs"><a href="{% url 'core:role_list' %}" class="text-orange-500 hover:text-orange-400">View role permissions</a></p>
+                    {% endif %}
                 </div>
-                
-                <!-- First Name -->
-                <div>
-                    <label for="first_name" class="block text-sm font-medium theme-text-primary mb-2">
-                        First Name
-                    </label>
-                    <input 
-                        type="text" 
-                        name="first_name" 
-                        id="first_name"
-                        value="{{ user.first_name|default:'' }}"
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter first name"
-                    >
-                </div>
-                
-                <!-- Last Name -->
-                <div>
-                    <label for="last_name" class="block text-sm font-medium theme-text-primary mb-2">
-                        Last Name
-                    </label>
-                    <input 
-                        type="text" 
-                        name="last_name" 
-                        id="last_name"
-                        value="{{ user.last_name|default:'' }}"
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter last name"
-                    >
-                </div>
-                
-                <!-- Password -->
-                <div>
-                    <label for="password" class="block text-sm font-medium theme-text-primary mb-2">
-                        Password {% if not user %}<span class="text-red-400">*</span>{% else %}<span class="text-xs theme-text-tertiary">(leave blank to keep current)</span>{% endif %}
-                    </label>
-                    <input 
-                        type="password" 
-                        name="password" 
-                        id="password"
-                        {% if not user %}required{% endif %}
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Enter password"
-                    >
-                </div>
-                
-                <!-- Password Confirm -->
-                <div>
-                    <label for="password_confirm" class="block text-sm font-medium theme-text-primary mb-2">
-                        Confirm Password {% if not user %}<span class="text-red-400">*</span>{% endif %}
-                    </label>
-                    <input 
-                        type="password" 
-                        name="password_confirm" 
-                        id="password_confirm"
-                        {% if not user %}required{% endif %}
-                        class="w-full px-4 py-2 theme-bg-tertiary border theme-border rounded-lg theme-text-primary focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Confirm password"
-                    >
-                </div>
-                
-                <!-- Permissions -->
-                <div class="md:col-span-2 pt-4 border-t theme-border">
-                    <p class="text-sm font-medium theme-text-primary mb-4">Permissions</p>
-                    <div class="space-y-3">
-                        <div class="flex items-center">
-                            <input 
-                                type="checkbox" 
-                                name="is_staff" 
-                                id="is_staff"
-                                {% if user.is_staff %}checked{% endif %}
-                                class="w-4 h-4 theme-bg-tertiary border theme-border rounded text-orange-500 focus:ring-orange-500 focus:ring-2"
-                            >
-                            <label for="is_staff" class="ml-2 text-sm theme-text-primary">
-                                Staff status (allows access to admin interface)
-                            </label>
-                        </div>
-                        <div class="flex items-center">
-                            <input 
-                                type="checkbox" 
-                                name="is_superuser" 
-                                id="is_superuser"
-                                {% if user.is_superuser %}checked{% endif %}
-                                class="w-4 h-4 theme-bg-tertiary border theme-border rounded text-orange-500 focus:ring-orange-500 focus:ring-2"
-                            >
-                            <label for="is_superuser" class="ml-2 text-sm theme-text-primary">
-                                Superuser (full access to all features)
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
+                {% endfor %}
             </div>
 
-            <div class="flex items-center space-x-4 pt-6 border-t theme-border">
-                <button type="submit" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">
-                    {% if user %}Update User{% else %}Create User{% endif %}
+            <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t theme-border">
+                <button type="submit" class="flex-1 sm:flex-none px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition min-h-[44px]">
+                    {% if target_user %}Update User{% else %}Create User{% endif %}
                 </button>
-                <a href="{% url 'core:user_list' %}" class="px-6 py-2 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition">
+                <a href="{% url 'core:user_list' %}" class="flex-1 sm:flex-none px-6 py-3 theme-bg-tertiary hover:opacity-80 theme-text-primary rounded-lg font-medium transition text-center min-h-[44px]">
                     Cancel
                 </a>
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
 
+<style>
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 16px; /* Prevent zoom on iOS */
+        min-height: 44px; /* Touch-friendly */
+    }
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #f97316;
+    }
+    .form-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: #f97316;
+    }
+</style>
+{% endblock %}

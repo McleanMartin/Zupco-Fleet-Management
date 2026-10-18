@@ -1,6 +1,7 @@
 """
 Core models for ZUPCO IoT Fleet Management System.
 """
+from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -337,3 +338,64 @@ class FuelRecord(models.Model):
             return float(self.cost) / self.quantity
         return 0.0
 
+
+
+class Driver(models.Model):
+    """A ZUPCO driver, optionally linked to a login account."""
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('on_leave', 'On Leave'),
+        ('suspended', 'Suspended'),
+        ('inactive', 'Inactive'),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='driver_profile',
+        help_text="Login account for this driver"
+    )
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    employee_number = models.CharField(max_length=20, unique=True, help_text="ZUPCO employee number")
+    phone = models.CharField(max_length=20, blank=True, help_text="Contact phone number")
+    national_id = models.CharField(max_length=20, blank=True, help_text="National ID number")
+    license_number = models.CharField(max_length=30, unique=True, help_text="Driver's licence number")
+    license_class = models.CharField(max_length=10, blank=True, help_text="Licence class (e.g., 1, 2, 4)")
+    license_expiry = models.DateField(help_text="Licence expiry date")
+    assigned_vehicle = models.ForeignKey(
+        Vehicle,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='drivers',
+        help_text="Vehicle currently assigned to this driver"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='active',
+        help_text="Current employment status"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
+        verbose_name = 'Driver'
+        verbose_name_plural = 'Drivers'
+
+    def __str__(self):
+        return f"{self.full_name} ({self.employee_number})"
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def license_expired(self):
+        from django.utils import timezone
+        return self.license_expiry < timezone.localdate()

@@ -3,13 +3,15 @@ Core views for authentication and landing page.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Group, User
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 from datetime import timedelta
 from apps.fleet.models import Vehicle, Route, Trip
+from .forms import UserForm
+from .roles import ROLE_DESCRIPTIONS, ROLE_PERMISSIONS
 
 
 def landing(request):
@@ -63,17 +65,17 @@ def logout_view(request):
     return redirect('core:landing')
 
 
-def is_staff(user):
-    """Check if user is staff."""
-    return user.is_staff
+def _can_manage(request_user, target):
+    """Only superusers may modify superuser accounts."""
+    return request_user.is_superuser or not target.is_superuser
 
 
 @login_required
-@user_passes_test(is_staff)
+@permission_required('auth.view_user', raise_exception=True)
 def user_list(request):
     """List all users."""
-    users = User.objects.all().order_by('username')
-    
+    users = User.objects.all().prefetch_related('groups').order_by('username')
+
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
@@ -83,122 +85,98 @@ def user_list(request):
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query)
         )
-    
+
+    # Role filter
+    role_filter = request.GET.get('role', '')
+    if role_filter:
+        users = users.filter(groups__name=role_filter)
+
     context = {
         'users': users,
         'search_query': search_query,
+        'role_filter': role_filter,
+        'roles': list(ROLE_PERMISSIONS),
     }
     return render(request, 'core/user_list.html', context)
 
 
 @login_required
-@user_passes_test(is_staff)
+@permission_required('auth.add_user', raise_exception=True)
 def user_create(request):
-    """Create a new user."""
+    """Create a new user and assign a role."""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        is_staff = request.POST.get('is_staff') == 'on'
-        is_superuser = request.POST.get('is_superuser') == 'on'
-        
-        # Validate
-        if not username:
-            messages.error(request, 'Username is required.')
-        elif User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-        elif password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
-        elif not password:
-            messages.error(request, 'Password is required.')
-        else:
-            try:
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                    first_name=first_name,
-                    last_name=last_name,
-                    is_staff=is_staff,
-                    is_superuser=is_superuser
-                )
-                messages.success(request, f'User "{user.username}" created successfully.')
-                return redirect('core:user_list')
-            except Exception as e:
-                messages.error(request, f'Error creating user: {str(e)}')
-    
-    return render(request, 'core/user_form.html', {'user': None})
+        form = UserForm(request.POST, request_user=request.user)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User "{user.username}" created successfully.')
+            return redirect('core:user_list')
+    else:
+        form = UserForm(request_user=request.user)
+
+    return render(request, 'core/user_form.html', {'form': form, 'target_user': None})
 
 
 @login_required
-@user_passes_test(is_staff)
+@permission_required('auth.change_user', raise_exception=True)
 def user_edit(request, pk):
-    """Edit an existing user."""
-    user = get_object_or_404(User, pk=pk)
-    
+    """Edit an existing user and their role."""
+    target_user = get_object_or_404(User, pk=pk)
+
+    if not _can_manage(request.user, target_user):
+        messages.error(request, 'Only superusers can edit superuser accounts.')
+        return redirect('core:user_list')
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        is_staff = request.POST.get('is_staff') == 'on'
-        is_superuser = request.POST.get('is_superuser') == 'on'
-        
-        # Validate username
-        if not username:
-            messages.error(request, 'Username is required.')
-        elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
-            messages.error(request, 'Username already exists.')
-        else:
-            # Update user
-            user.username = username
-            user.email = email
-            user.first_name = first_name
-            user.last_name = last_name
-            user.is_staff = is_staff
-            user.is_superuser = is_superuser
-            
-            # Update password if provided
-            if password:
-                if password != password_confirm:
-                    messages.error(request, 'Passwords do not match.')
-                    return render(request, 'core/user_form.html', {'user': user})
-                user.set_password(password)
-            
-            try:
-                user.save()
-                messages.success(request, f'User "{user.username}" updated successfully.')
-                return redirect('core:user_list')
-            except Exception as e:
-                messages.error(request, f'Error updating user: {str(e)}')
-    
-    return render(request, 'core/user_form.html', {'user': user})
+        form = UserForm(request.POST, instance=target_user, request_user=request.user)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User "{user.username}" updated successfully.')
+            return redirect('core:user_list')
+    else:
+        form = UserForm(instance=target_user, request_user=request.user)
+
+    return render(request, 'core/user_form.html', {'form': form, 'target_user': target_user})
 
 
 @login_required
-@user_passes_test(is_staff)
+@permission_required('auth.delete_user', raise_exception=True)
 def user_delete(request, pk):
     """Delete a user."""
-    user = get_object_or_404(User, pk=pk)
-    
+    target_user = get_object_or_404(User, pk=pk)
+
     # Prevent deleting yourself
-    if user == request.user:
+    if target_user == request.user:
         messages.error(request, 'You cannot delete your own account.')
         return redirect('core:user_list')
-    
+
+    if not _can_manage(request.user, target_user):
+        messages.error(request, 'Only superusers can delete superuser accounts.')
+        return redirect('core:user_list')
+
     if request.method == 'POST':
-        username = user.username
-        try:
-            user.delete()
-            messages.success(request, f'User "{username}" deleted successfully.')
-            return redirect('core:user_list')
-        except Exception as e:
-            messages.error(request, f'Error deleting user: {str(e)}')
-            return redirect('core:user_list')
-    
-    return render(request, 'core/user_confirm_delete.html', {'user': user})
+        username = target_user.username
+        target_user.delete()
+        messages.success(request, f'User "{username}" deleted successfully.')
+        return redirect('core:user_list')
+
+    return render(request, 'core/user_confirm_delete.html', {'target_user': target_user})
+
+
+@login_required
+@permission_required('auth.view_group', raise_exception=True)
+def role_list(request):
+    """Show each role with its permissions and member count."""
+    groups = {
+        g.name: g for g in Group.objects.filter(name__in=ROLE_PERMISSIONS).prefetch_related('permissions', 'user_set')
+    }
+    roles = []
+    for name in ROLE_PERMISSIONS:
+        group = groups.get(name)
+        permissions = group.permissions.select_related('content_type').order_by('content_type__model', 'codename') if group else []
+        roles.append({
+            'name': name,
+            'description': ROLE_DESCRIPTIONS.get(name, ''),
+            'permissions': permissions,
+            'user_count': group.user_set.count() if group else 0,
+        })
+    return render(request, 'core/role_list.html', {'roles': roles})
